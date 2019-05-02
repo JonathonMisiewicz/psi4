@@ -36,6 +36,7 @@
 #include "psi4/psifiles.h"
 #include "psi4/libtrans/integraltransform.h"
 #include "psi4/libpsi4util/PsiOutStream.h"
+#include "psi4/liboptions/liboptions.h"
 
 #include <algorithm>
 #include <functional>
@@ -142,6 +143,7 @@ void DCFTSolver::refine_tau_RHF() {
     bool converged = false;
     bool failed = false;
     int cycle = 0;
+    auto maxiter_tau = options_.get_int("MAXITER_1RDM");
 
     // Copy approximate Tau as the non-idempotency of OPDM
     aocc_d->copy(aocc_tau_);
@@ -171,7 +173,7 @@ void DCFTSolver::refine_tau_RHF() {
         rms *= 2.0;
 
         converged = (rms < cumulant_threshold_);
-        failed = (++cycle == maxiter_);
+        failed = (++cycle == maxiter_tau);
 
         if (print_ > 2) outfile->Printf("\t Exact Tau Iterations: %-3d %20.12f\n", cycle, rms);
         //            if (print_ > 0) outfile->Printf( "\t Exact Tau Iterations: %-3d %20.12f\n", cycle, rms);

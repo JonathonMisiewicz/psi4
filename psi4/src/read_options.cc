@@ -1082,6 +1082,8 @@ int read_options(const std::string &name, Options &options, bool suppress_printi
         options.add_double("GUESS_R_CONVERGENCE", 1e-3);
         /*- Maximum number of macro- or micro-iterations for both energy and response equations -*/
         options.add_int("MAXITER", 40);
+        /*- Maximum number of iterations for the exact 1RDM/Tau !expert-*/
+        options.add_int("MAXITER_1RDM", 40);
         /*- Value of RMS of the density cumulant residual and SCF error vector below which DIIS extrapolation starts.
         Same keyword controls the DIIS extrapolation for the solution of the response equations. -*/
         options.add_double("DIIS_START_CONVERGENCE", 1e-3);
