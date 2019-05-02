@@ -786,6 +786,7 @@ void DCFTSolver::refine_tau() {
     bool converged = false;
     bool failed = false;
     int cycle = 0;
+    auto maxiter_tau = options_.get_int("MAXITER_1RDM");
 
     // Copy approximate Tau as the non-idempotency of OPDM
     aocc_d->copy(aocc_tau_);
@@ -843,7 +844,7 @@ void DCFTSolver::refine_tau() {
         rms += bvir_r->rms();
 
         converged = (rms < cumulant_threshold_);
-        failed = (++cycle == maxiter_);
+        failed = (++cycle == maxiter_tau);
 
         aocc_tau_->add(aocc_r);
         bocc_tau_->add(bocc_r);
