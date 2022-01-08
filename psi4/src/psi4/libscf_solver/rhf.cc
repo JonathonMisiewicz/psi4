@@ -236,8 +236,6 @@ void RHF::form_G() {
     }
 }
 
-bool RHF::diis() { return diis_manager_.attr("extrapolate")(Fa_.get()).cast<bool>(); }
-
 void RHF::form_F() {
     Fa_->copy(H_);
     Fa_->add(G_);
