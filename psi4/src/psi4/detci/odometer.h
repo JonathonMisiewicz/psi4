@@ -38,20 +38,19 @@
 **   ensures that digit i is greater than digit i+1.
 **
 **   Methods:
-**      Odometer(): Default constructor gives 0 digits and all nullptr arrays.
-**      Odometer(int n): Construct an odometer with n digits
-**      ~Odometer(): Free's the dynamically allocated memory
-**      size(int m): Set the length of a default-constructed odometer to m
-**      resize(int m): Change the length of an odometer to m
+**      Odometer(): Default constructor gives 0 digits and empty arrays.
+**      Odometer(size_t n): Construct an odometer with n digits
+**      size(size_t m): Set the length of a default-constructed odometer to m
 **      set_max(int m): set the maximum for every digit to m
-**      set_max(int *m): set the max for each digit according to array m
+**      set_max(std::vector<int>& m): set the max for each digit according to array m
 **      set_min(int m), set_min(int *m): similar to set_max()
+**      set_min(std::vector<int>& m): set the min for each digit according to array m
 **      set_value(int m), set_value(int *m): similar to set_max()
 **      set_max_lex(int m): set max values for each digit such that the
 **         lowest index digit has max m, the next has max m-1, etc.
 **      set_min_lex(int m): set min values for each digit such that the
 **         highest index digit has min m, the next has min m-1, etc.
-**      get_value(int *m): copy the values array into array m
+**      get_value(std::vector<int>& m): copy the values array into array m
 **      increment(): increment the odometer (at position 0)
 **      increment_lex(): lexical index...increment but make sure that
 **         value[i] > value[i+1]
@@ -72,35 +71,33 @@ namespace detci {
 
 class Odometer {
    protected:
-    unsigned length;
-    int* max;
-    int* min;
-    int* value;
+    size_t length;
+    std::vector<int> max;
+    std::vector<int> min;
+    std::vector<int> value;
 
    public:
     Odometer();
-    Odometer(unsigned len) { size(len); }
-    ~Odometer();
+    Odometer(size_t len) { size(len); }
 
-    void size(unsigned s);
-    void resize(unsigned s);
+    void size(size_t s);
     void set_max(int m);
     void set_max_lex(int m);
-    void set_max(int* m);
+    void set_max(const std::vector<int>& m);
     void set_min(int m);
     void set_min_lex(int m);
-    void set_min(int* m);
+    void set_min(const std::vector<int>& m);
     void set_value(int m);
-    void set_value(int* m);
-    void get_value(int* m);
+    void set_value(const std::vector<int>& m);
+    void get_value(std::vector<int>& m);
     void increment();
     void increment_lex();
     void reset();
     void print();
-    unsigned at_max();
-    unsigned at_min();
-    unsigned get_length() { return length; }
-    unsigned boundscheck();
+    bool at_max();
+    bool at_min();
+    size_t get_length() { return length; }
+    bool boundscheck();
 };
 
 }  // namespace detci

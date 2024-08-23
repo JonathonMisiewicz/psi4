@@ -44,7 +44,9 @@
 
 #include "psi4/detci/odometer.h"
 
+#include <algorithm>
 #include <cstdio>
+#include <numeric>
 
 namespace psi {
 namespace detci {
@@ -56,122 +58,57 @@ namespace detci {
 
 Odometer::Odometer() {
     length = 0;
-    max = nullptr;
-    min = nullptr;
-    value = nullptr;
 }
 
-Odometer::~Odometer() {
-    if (length) {
-        delete[] max;
-        delete[] min;
-        delete[] value;
-    }
-    length = 0;
-}
-
-void Odometer::size(unsigned n) {
-    int i;
-
+void Odometer::size(size_t n) {
     length = n;
-    max = new int[n];
-    min = new int[n];
-    value = new int[n];
-
-    for (i = 0; i < n; i++) {
-        max[i] = 9;
-        min[i] = 0;
-        value[i] = 0;
-    }
-}
-
-void Odometer::resize(unsigned n) {
-    int i;
-
-    if (length != 0) {
-        delete[] max;
-        delete[] min;
-        delete[] value;
-    }
-    length = n;
-
-    if (n) {
-        max = new int[n];
-        min = new int[n];
-        value = new int[n];
-    }
-
-    for (i = 0; i < n; i++) {
-        max[i] = 9;
-        min[i] = 0;
-        value[i] = 0;
-    }
+    max = std::vector<int>(n, 0);
+    min = std::vector<int>(n, 0);
+    value = std::vector<int>(n, 0);
 }
 
 void Odometer::set_max(int m) {
-    int i;
-
-    for (i = 0; i < length; i++) max[i] = m;
+    std::fill(max.begin(), max.end(), m);
 }
 
 void Odometer::set_max_lex(int m) {
-    int i;
-
-    for (i = 0; i < length; i++) max[i] = m - i;
+    std::iota(std::rbegin(max), std::rend(max), m - length + 1);
 }
 
-void Odometer::set_max(int* m) {
-    int i;
-
-    for (i = 0; i < length; i++) max[i] = m[i];
+void Odometer::set_max(const std::vector<int>& m) {
+    max = m;
 }
 
 void Odometer::set_min(int m) {
-    int i;
-
-    for (i = 0; i < length; i++) min[i] = m;
+    std::fill(min.begin(), min.end(), m);
 }
 
 void Odometer::set_min_lex(int m) {
-    int i, j;
-
-    for (i = length - 1, j = 0; i >= 0; i--, j++) min[i] = m + j;
+    std::iota(std::rbegin(min), std::rend(min), m);
 }
 
-void Odometer::set_min(int* m) {
-    int i;
-
-    for (i = 0; i < length; i++) min[i] = m[i];
+void Odometer::set_min(const std::vector<int>& m) {
+    min = m;
 }
 
 void Odometer::set_value(int m) {
-    int i;
-
-    for (i = 0; i < length; i++) value[i] = m;
+    std::fill(value.begin(), value.end(), m);
 }
 
-void Odometer::get_value(int* m) {
-    int i;
-
-    for (i = 0; i < length; i++) m[i] = value[i];
+void Odometer::get_value(std::vector<int>& m) {
+    m = value;
 }
 
-void Odometer::set_value(int* m) {
-    int i;
-
-    for (i = 0; i < length; i++) value[i] = m[i];
+void Odometer::set_value(const std::vector<int>& m) {
+    value = m;
 }
 
 void Odometer::reset() {
-    int i;
-
-    for (i = 0; i < length; i++) value[i] = min[i];
+    value = min;
 }
 
 void Odometer::increment() {
-    int i;
-
-    for (i = 0; i < length; i++) {
+    for (size_t i = 0; i < length; i++) {
         if (value[i] < max[i]) {
             value[i] += 1;
             return;
@@ -182,12 +119,10 @@ void Odometer::increment() {
 }
 
 void Odometer::increment_lex() {
-    int i, j;
-
-    for (i = 0; i < length; i++) {
+    for (size_t i = 0; i < length; i++) {
         if (value[i] < max[i]) {
             value[i] += 1;
-            for (j = i - 1; j >= 0; j--) {
+            for (size_t j = i - 1; j >= 0; j--) {
                 if (value[j + 1] + 1 >= min[j])
                     value[j] = value[j + 1] + 1;
                 else
@@ -201,67 +136,33 @@ void Odometer::increment_lex() {
 }
 
 void Odometer::print() {
-    int i;
-
-    for (i = length - 1; i >= 0; i--) {
+    for (size_t i = length - 1; i >= 0; i--) {
         outfile->Printf("%d ", value[i]);
     }
     outfile->Printf("\n");
 }
 
-unsigned Odometer::at_max() {
-    int i;
-    unsigned tval = 1;
-
-    if (length == 0) return (1);
-    for (i = 0; i < length; i++) {
-        if (value[i] != max[i]) tval = 0;
+bool Odometer::at_max() {
+    for (size_t i = 0; i < length; i++) {
+        if (value[i] != max[i]) return false;
     }
-    return (tval);
+    return true;
 }
 
-unsigned Odometer::at_min() {
-    int i;
-    unsigned tval = 1;
-
-    if (length == 0) return (1);
-    for (i = 0; i < length; i++) {
-        if (value[i] != min[i]) tval = 0;
+bool Odometer::at_min() {
+    for (size_t i = 0; i < length; i++) {
+        if (value[i] != min[i]) return false;
     }
-    return (tval);
+    return true;
 }
 
-unsigned Odometer::boundscheck() {
-    int i;
+bool Odometer::boundscheck() {
 
-    if (length == 0) return (1);
+    for (size_t i = 0; i < length; i++)
+        if (max[i] < min[i]) return false;
 
-    for (i = 0; i < length; i++)
-        if ((max[i] < min[i]) || (min[i] > max[i])) return (0);
-
-    return (1);
+    return true;
 }
 
-//#ifdef STANDALONE
-//int main() {
-//    Odometer od;
-//    int maxvals[] = {7, 6, 5};
-//    int minvals[] = {3, 2, 1};
-//
-//    od.size(3);
-//    od.print();
-//    // od.set_min(minvals) ;
-//    od.set_min_lex(1);
-//    od.reset();
-//    // od.set_max(maxvals) ;
-//    od.set_max_lex(7);
-//    while (!od.at_max()) {
-//        od.print();
-//        od.increment_lex();
-//    }
-//    od.print();
-//    return 0;
-//}
-//#endif
 }
 }  // namespace psi

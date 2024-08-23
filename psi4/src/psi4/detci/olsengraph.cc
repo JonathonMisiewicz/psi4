@@ -227,7 +227,7 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
     int n1, n2, n3, n4;
     int n1max, n1min;
     int max_el_ras1;
-    int *occs, *array1, *array2, *array3, *array4, **encode_tmp;
+    int *occs, **encode_tmp;
     int i, j, k;
     int maxj, drc_sym = 0, code = 0, num_el_expl;
     struct stringgraph *sgptr;
@@ -247,10 +247,7 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
     maxj = nirreps * (num_el - num_drc_orbs + 1);
 
     // go ahead and make room for the occupations of RAS I, II, and III
-    array1 = init_int_array(num_el);
-    array2 = init_int_array(num_el);
-    array3 = init_int_array(num_el);
-    array4 = init_int_array(num_el);
+    std::vector<int> array1(num_el, 0), array2(num_el, 0), array3(num_el, 0), array4(num_el, 0);
 
     // Initialize the Graph data structure
     Graph->num_el = num_el;
@@ -358,12 +355,12 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
     //
 
     for (n1 = n1max; n1 >= n1min; n1--) {
-        Ras1.resize(n1);
+        Ras1.size(n1);
         Ras1.set_min_lex(num_expl_cor_orbs);
         Ras1.set_max_lex(ras1_lvl);
 
         for (n3 = 0; n3 <= ras3_max; n3++) {
-            Ras3.resize(n3);
+            Ras3.size(n3);
             Ras3.set_min_lex(ras3_lvl);
             /* Ras3.set_max_lex(ci_orbs-1) ; */
             Ras3.set_max_lex(ras4_lvl - 1);
@@ -379,8 +376,8 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
                 //outfile->Printf("n1 = %d, n2 = %d, n3 = %d, n4 = %d\n", n1, n2, n3, n4);
                 //if (n2 < 0) outfile->Printf("Error: n2 < 0 in form_strings()\n");
 
-                Ras2.resize(n2);
-                Ras4.resize(n4);
+                Ras2.size(n2);
+                Ras4.size(n4);
                 Ras2.set_min_lex(ras1_lvl + 1);
                 Ras2.set_max_lex(ras3_lvl - 1);
                 Ras4.set_min_lex(ras4_lvl);
@@ -427,10 +424,6 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
 
     } /* end loop over n1 */
 
-    free(array1);
-    free(array2);
-    free(array3);
-    free(array4);
     free(occs);
 
     /* fill up the olsen graph from the ki's */

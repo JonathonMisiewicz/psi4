@@ -621,10 +621,10 @@ void CIWavefunction::read_dpd_ci_ints() {
     // => Read one electron integrals <= //
     // Build temporary desired arrays
     int nmotri_full = (CalcInfo_->nmo * (CalcInfo_->nmo + 1)) / 2;
-    auto* tmp_onel_ints = new double[nmotri_full];
+    std::vector<double> tmp_onel_ints(nmotri_full, 0);
 
     // Read one electron integrals
-    iwl_rdone(PSIF_OEI, PSIF_MO_FZC, tmp_onel_ints, nmotri_full, 0, (print_ > 4), "outfile");
+    iwl_rdone(PSIF_OEI, PSIF_MO_FZC, tmp_onel_ints.data(), nmotri_full, 0, (print_ > 4), "outfile");
 
     // IntegralTransform does not properly order one electron integrals for
     // whatever reason
@@ -638,7 +638,7 @@ void CIWavefunction::read_dpd_ci_ints() {
         }
     }
 
-    delete[] tmp_onel_ints;
+    std::vector<double>().swap(tmp_onel_ints); // Dirty trick to clear temp memory immediately.
 
     // => Read two electron integral <= //
     // This is not a good algorithm, stores two e's in memory twice!
