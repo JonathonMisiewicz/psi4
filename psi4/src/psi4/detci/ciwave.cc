@@ -659,22 +659,13 @@ std::shared_ptr<SOMCSCF> CIWavefunction::mcscf_object() {
 }
 
 void CIWavefunction::print_vector(SharedCIVector vec, int root) {
-    int* mi_iac = init_int_array(Parameters_->nprint);
-    int* mi_ibc = init_int_array(Parameters_->nprint);
-    int* mi_iaidx = init_int_array(Parameters_->nprint);
-    int* mi_ibidx = init_int_array(Parameters_->nprint);
-    double* mi_coeff = init_array(Parameters_->nprint);
+    std::vector<int> mi_iac(Parameters_->nprint, 0), mi_ibc(Parameters_->nprint, 0), mi_iaidx(Parameters_->nprint, 0), mi_ibidx(Parameters_->nprint, 0);
+    std::vector<double> mi_coeff(Parameters_->nprint, 0);
 
     // Print largest CI coefs
     vec->read(root, 0);
-    vec->max_abs_vals(Parameters_->nprint, mi_iac, mi_ibc, mi_iaidx, mi_ibidx, mi_coeff, Parameters_->neg_only);
+    vec->max_abs_vals(Parameters_->nprint, mi_iac.data(), mi_ibc.data(), mi_iaidx.data(), mi_ibidx.data(), mi_coeff.data(), Parameters_->neg_only);
     print_vec(Parameters_->nprint, mi_iac, mi_ibc, mi_iaidx, mi_ibidx, mi_coeff);
-
-    free(mi_iac);
-    free(mi_ibc);
-    free(mi_iaidx);
-    free(mi_ibidx);
-    free(mi_coeff);
 }
 
 void CIWavefunction::compute_state_transfer(SharedCIVector ref, int ref_vec, SharedMatrix prop, SharedCIVector ret) {

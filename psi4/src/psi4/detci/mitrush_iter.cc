@@ -90,9 +90,8 @@ void CIWavefunction::mitrush_iter(CIvect &Hd, struct stringwr **alplist, struct 
     double x, y, c1norm = 0.0;
     int sm_tridim, buf;
     double *sm_mat, *sm_evals, **sm_evecs;
-    int *mi_iac, *mi_ibc, *mi_iaidx, *mi_ibidx;
     double testS = 0.0;
-    double tval, *mi_coeff, *buffer1, *buffer2;
+    double tval, *buffer1, *buffer2;
     double **alpha, chknorm;
     int diag_method;
     CIvect Cvec;
@@ -135,11 +134,8 @@ void CIWavefunction::mitrush_iter(CIvect &Hd, struct stringwr **alplist, struct 
 
     /* small arrays to hold most important config information */
 
-    mi_iac = init_int_array(Parameters_->nprint);
-    mi_ibc = init_int_array(Parameters_->nprint);
-    mi_iaidx = init_int_array(Parameters_->nprint);
-    mi_ibidx = init_int_array(Parameters_->nprint);
-    mi_coeff = init_array(Parameters_->nprint);
+    std::vector<int> mi_iac(Parameters_->nprint, 0), mi_ibc(Parameters_->nprint, 0), mi_iaidx(Parameters_->nprint, 0), mi_ibidx(Parameters_->nprint, 0);
+    std::vector<double> mi_coeff(Parameters_->nprint, 0);
 
     /* stuff for the 2x2 Davidson procedure */
 
@@ -490,13 +486,8 @@ void CIWavefunction::mitrush_iter(CIvect &Hd, struct stringwr **alplist, struct 
             free_matrix(evecs2x2, 2);
             outfile->Printf("\n\n* ROOT 1 CI total energy = %19.15lf\n", E + enuc);
 
-            Cvec.max_abs_vals(Parameters_->nprint, mi_iac, mi_ibc, mi_iaidx, mi_ibidx, mi_coeff, Parameters_->neg_only);
+            Cvec.max_abs_vals(Parameters_->nprint, mi_iac.data(), mi_ibc.data(), mi_iaidx.data(), mi_ibidx.data(), mi_coeff.data(), Parameters_->neg_only);
             print_vec(Parameters_->nprint, mi_iac, mi_ibc, mi_iaidx, mi_ibidx, mi_coeff);
-            free(mi_iac);
-            free(mi_ibc);
-            free(mi_iaidx);
-            free(mi_ibidx);
-            free(mi_coeff);
             Parameters_->diag_h_converged = true;
             return;
         }

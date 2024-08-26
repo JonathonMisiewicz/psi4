@@ -196,8 +196,8 @@ class CIvect {
     int schmidt_add(CIvect &c, int L);
     int schmidt_add2(CIvect &c, int first_vec, int last_vec, int source_vec, int target_vec, double *dotval,
                      double *nrm, double *ovlpmax);
-    void dcalc(int nr, int L, double **alpha, double *lambda, double *norm_arr, CIvect &C, CIvect &S, double *buf1,
-               double *buf2, int *root_converged, int printflag, double *E_est);
+    void dcalc(int nr, int L, double **alpha, double *lambda, std::vector<double>& norm_arr, CIvect &C, CIvect &S, double *buf1,
+               double *buf2, std::vector<bool>& root_converged, int printflag, const std::vector<double>& E_est);
     void sigma_renorm(int nr, int L, double renorm_C, CIvect &S, double *buf1, int printflag);
     double dcalc2(int rootnum, double lambda, CIvect &Hd, int precon, struct stringwr **alplist,
                   struct stringwr **betlist);

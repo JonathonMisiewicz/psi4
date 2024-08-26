@@ -441,7 +441,8 @@ class CIWavefunction : public Wavefunction {
     void sigma_get_contrib_rotf(CIvect &C, CIvect &S, int **s1_contrib, int **s2_contrib, int **s3_contrib, int *Cnt[2],
                                 int **Ij[2], int **Oij[2], int **Ridx[2], signed char **Sgn[2], unsigned char **Toccs);
 
-    void print_vec(size_t nprint, int *Ialist, int *Iblist, int *Iaidx, int *Ibidx, double *coeff);
+    void print_vec(size_t nprint, const std::vector<int>& Ialist, const std::vector<int>& Iblist,
+                   const std::vector<int>& Iaidx, const std::vector<int>& Ibidx, const std::vector<double>& coeff);
 
     /// => MCSCF helpers <= //
 

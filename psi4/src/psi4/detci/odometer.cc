@@ -61,53 +61,76 @@ Odometer::Odometer() {
 }
 
 void Odometer::size(size_t n) {
+    outfile->Printf("size in\n");
     length = n;
     max = std::vector<int>(n, 0);
     min = std::vector<int>(n, 0);
     value = std::vector<int>(n, 0);
+    outfile->Printf("size out\n");
 }
 
 void Odometer::set_max(int m) {
+    outfile->Printf("set_max in\n");
     std::fill(max.begin(), max.end(), m);
+    outfile->Printf("set_max out\n");
 }
 
 void Odometer::set_max_lex(int m) {
+    outfile->Printf("set_max_lex in\n");
     std::iota(std::rbegin(max), std::rend(max), m - length + 1);
+    outfile->Printf("set_max_lex out\n");
 }
 
 void Odometer::set_max(const std::vector<int>& m) {
+    outfile->Printf("set_max2 in\n");
     max = m;
+    outfile->Printf("set_max2 out\n");
 }
 
 void Odometer::set_min(int m) {
+    outfile->Printf("set_min in\n");
     std::fill(min.begin(), min.end(), m);
+    outfile->Printf("set_min out\n");
 }
 
 void Odometer::set_min_lex(int m) {
+    outfile->Printf("set_min_lex in\n");
     std::iota(std::rbegin(min), std::rend(min), m);
+    outfile->Printf("set_min_lex out\n");
 }
 
 void Odometer::set_min(const std::vector<int>& m) {
+    outfile->Printf("set_min2 in\n");
     min = m;
+    outfile->Printf("set_min2 out\n");
 }
 
 void Odometer::set_value(int m) {
+    outfile->Printf("set_value in\n");
     std::fill(value.begin(), value.end(), m);
+    outfile->Printf("set_value out\n");
 }
 
 void Odometer::get_value(std::vector<int>& m) {
+    outfile->Printf("get_value in\n");
     m = value;
+    outfile->Printf("get_value out\n");
 }
 
 void Odometer::set_value(const std::vector<int>& m) {
+    outfile->Printf("set_value2 in\n");
     value = m;
+    outfile->Printf("set_value2 out\n");
 }
 
 void Odometer::reset() {
+    outfile->Printf("reset in\n");
     value = min;
+    outfile->Printf("reset out\n");
 }
 
 void Odometer::increment() {
+    outfile->Printf("increment in\n");
     for (size_t i = 0; i < length; i++) {
         if (value[i] < max[i]) {
             value[i] += 1;
@@ -116,23 +139,29 @@ void Odometer::increment() {
             value[i] = min[i];
         }
     }
+    outfile->Printf("increment out\n");
 }
 
 void Odometer::increment_lex() {
+    outfile->Printf("increment_lex in: %d %d %d %d\n", value.size(), max.size(), min.size(), length);
     for (size_t i = 0; i < length; i++) {
+        outfile->Printf("iter %d", i);
         if (value[i] < max[i]) {
+            outfile->Printf("true branch");
             value[i] += 1;
-            for (size_t j = i - 1; j >= 0; j--) {
-                if (value[j + 1] + 1 >= min[j])
-                    value[j] = value[j + 1] + 1;
+            for (size_t j = i; j >= 1; j--) {
+                if (value[j] + 1 >= min[j - 1])
+                    value[j - 1] = value[j] + 1;
                 else
-                    value[j] = min[j];
+                    value[j - 1] = min[j - 1];
             }
             break;
         } else {
+            outfile->Printf("false branch");
             value[i] = min[i];
         }
     }
+    outfile->Printf("increment_lex out\n");
 }
 
 void Odometer::print() {
@@ -143,6 +172,7 @@ void Odometer::print() {
 }
 
 bool Odometer::at_max() {
+    outfile->Printf("at_max in\n");
     for (size_t i = 0; i < length; i++) {
         if (value[i] != max[i]) return false;
     }
@@ -150,6 +180,7 @@ bool Odometer::at_max() {
 }
 
 bool Odometer::at_min() {
+    outfile->Printf("at_min in\n");
     for (size_t i = 0; i < length; i++) {
         if (value[i] != min[i]) return false;
     }
@@ -157,7 +188,7 @@ bool Odometer::at_min() {
 }
 
 bool Odometer::boundscheck() {
-
+    outfile->Printf("boundscheck in\n");
     for (size_t i = 0; i < length; i++)
         if (max[i] < min[i]) return false;
 

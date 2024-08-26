@@ -67,21 +67,21 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
     int i, j, k, l, ij, I, L, L2 = 0, L3 = 0, tmpi, detH0;
     size_t det1, N;
     int num_alp_str, num_bet_str, Llast;
-    int *mi_iac, *mi_ibc, *mi_iaidx, *mi_ibidx, *root_converged;
-    int *Lvec, *did_root, num_root_converged;
-    double *mi_coeff, *clpse_norm, **clpse_dot, **tmpmat;
+    int *mi_iac, *mi_ibc, *mi_iaidx, *mi_ibidx;
+    int num_root_converged;
+    double *mi_coeff, **clpse_dot, **tmpmat;
     double *oei, *tei, **G, ***alpha, **lambda, ****m_alpha, ***m_lambda;
     int sm_tridim;
     double *sm_mat, *sm_evals, **sm_evecs;
     int iter = 0, converged = 0;
     int iter2 = 0; /* iterations since last collapse */
-    double tval, tval2, *lastroot, *dvecnorm, *buffer1, *buffer2;
+    double tval, tval2, *buffer1, *buffer2;
     double ***M, **sigma_overlap, Mtmp, **cmp_cncoe, **tr_cmp_cncoe;
-    int *lse_do_arr, lse_do = 0, collapse_num = 0, iter_tmp = 0;
+    int lse_do = 0, collapse_num = 0, iter_tmp = 0;
     int form_M = 0, tmpval;
     int last_lse_collapse_num = -Parameters_->lse_collapse;
-    double *x, *y, tmpx, tmpy;
-    double lse_tolerance, *renorm_c, *E_est, ovlpmax = 0.0;
+    double tmpx, tmpy;
+    double lse_tolerance, ovlpmax = 0.0;
     double cknorm, tvalmatt = 0.0, tmp; /* Add by CDS for debugging purposes */
     int errcod;
     std::string str;
@@ -151,31 +151,17 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
         oei = CalcInfo_->gmat->pointer();
     tei = CalcInfo_->twoel_ints->pointer();
 
-    lastroot = init_array(nroots);
-    dvecnorm = init_array(nroots);
-    root_converged = init_int_array(nroots);
-    did_root = init_int_array(nroots);
-    clpse_norm = init_array(maxnvect);
+    std::vector<double> lastroot(nroots, 0), dvecnorm(nroots, 0), E_est(nroots, 0), x(nroots, 0), y(nroots, 0);
+    std::vector<bool> root_converged(nroots, false), did_root(nroots, false), lse_do_arr(nroots, false);
+    std::vector<double> clpse_norm(maxnvect, 0);
     clpse_dot = init_matrix(maxnvect, maxnvect);
     tmpmat = init_matrix(maxnvect, nroots);
-    lse_do_arr = init_int_array(nroots);
-    renorm_c = init_array(nroots);
-    x = init_array(nroots);
-    y = init_array(nroots);
-    E_est = init_array(nroots);
-
-    /* small arrays to hold most important config information */
-    mi_iac = init_int_array(Parameters_->nprint);
-    mi_ibc = init_int_array(Parameters_->nprint);
-    mi_iaidx = init_int_array(Parameters_->nprint);
-    mi_ibidx = init_int_array(Parameters_->nprint);
-    mi_coeff = init_array(Parameters_->nprint);
 
     G = init_matrix(maxnvect, maxnvect);
     cmp_cncoe = init_matrix(maxnvect, maxnvect);
     tr_cmp_cncoe = init_matrix(maxnvect, maxnvect);
     sigma_overlap = init_matrix(maxnvect, maxnvect);
-    Lvec = init_int_array(maxnvect);
+    std::vector<int> Lvec(maxnvect, 0);
     lambda = init_matrix(maxnvect, maxnvect);
 
     m_lambda = (double ***)malloc(sizeof(double **) * maxnvect);
@@ -710,15 +696,15 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
 
             Cvec.buf_lock(buffer1);
             Dvec.buf_lock(buffer2);
-            zero_int_array(lse_do_arr, nroots);
+            std::fill(lse_do_arr.begin(), lse_do_arr.end(), false);
             for (i = 0; i < nroots; i++) {
                 if (form_M && ((collapse_num - last_lse_collapse_num) >= Parameters_->lse_collapse) &&
                     (std::fabs(lambda[iter2][i] - lastroot[i]) < lse_tolerance) &&
                     (m_lambda[iter2][i][0] > MALPHA_TOLERANCE)) {
-                    lse_do_arr[i] = 1;
+                    lse_do_arr[i] = true;
                     lse_do++;
                 } else {
-                    lse_do_arr[i] = 0;
+                    lse_do_arr[i] = false;
                     if (i == 0) break;
                 }
             }
@@ -776,7 +762,7 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
                 }
 
                 /* do all the C's */
-                zero_int_array(did_root, nroots);
+                std::fill(did_root.begin(), did_root.end(), false);
                 zero_mat(clpse_dot, nroots, maxnvect);
                 Cvec.buf_lock(buffer1);
                 Dvec.buf_lock(buffer2);
@@ -786,7 +772,7 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
                     if (root_converged[j]) continue;
                     if (Dvec.schmidt_add2(Cvec, maxnvect - L2, maxnvect - 1, j, maxnvect - L2 - 1, clpse_dot[j],
                                           &(clpse_norm[j]), &tval)) {
-                        did_root[j] = 1;
+                        did_root[j] = true;
                         L2++;
                         if (tval > ovlpmax) ovlpmax = tval;
                     }
@@ -864,7 +850,7 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
                 Cvec2.buf_lock(buffer2);
                 L2 = L3 = 1;
                 zero_mat(clpse_dot, maxnvect, maxnvect);
-                zero_arr(clpse_norm, nroots);
+                std::fill(clpse_norm.begin(), clpse_norm.end(), 0);
                 for (j = 1; j < L; j++) {
                     if (Cvec.schmidt_add2(Cvec2, 0, j - 1, j, j, clpse_dot[j], &(clpse_norm[j]), &ovlpmax)) L2++;
                 }
@@ -980,9 +966,9 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
         converged = 1;
         for (i = 0; i < nroots; i++) {
             if (dvecnorm[i] <= conv_rms && std::fabs(lambda[iter2][i] - lastroot[i]) <= conv_e)
-                root_converged[i] = 1;
+                root_converged[i] = true;
             else {
-                root_converged[i] = 0;
+                root_converged[i] = false;
                 converged = 0;
             }
             if (print_) {
@@ -1213,24 +1199,6 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
     // Free buffers
     free(buffer1);
     free(buffer2);
-
-    // Free arrays
-    free(lastroot);
-    free(dvecnorm);
-    free(root_converged);
-    free(did_root);
-    free(clpse_norm);
-    free(lse_do_arr);
-    free(renorm_c);
-    free(x);
-    free(y);
-    free(E_est);
-    free(mi_iac);
-    free(Lvec);
-    free(mi_ibc);
-    free(mi_iaidx);
-    free(mi_ibidx);
-    free(mi_coeff);
 
     // Free matrices
     free_matrix(clpse_dot, maxnvect);

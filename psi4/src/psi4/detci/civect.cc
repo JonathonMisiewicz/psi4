@@ -2116,8 +2116,8 @@ void CIvect::sigma_renorm(int nr, int L, double renorm_C, CIvect &S, double *buf
 **
 ** Returns: none
 */
-void CIvect::dcalc(int nr, int L, double **alpha, double *lambda, double *norm_arr, CIvect &C, CIvect &S, double *buf1,
-                   double *buf2, int *root_converged, int printflag, double *E_est) {
+void CIvect::dcalc(int nr, int L, double **alpha, double *lambda, std::vector<double>& norm_arr, CIvect &C, CIvect &S, double *buf1,
+                   double *buf2, std::vector<bool>& root_converged, int printflag, const std::vector<double>& E_est) {
     int buf, ivect, root, tmproot, converged = 0, i;
     double tval;
 
