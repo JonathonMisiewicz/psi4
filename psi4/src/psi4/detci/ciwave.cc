@@ -664,7 +664,7 @@ void CIWavefunction::print_vector(SharedCIVector vec, int root) {
 
     // Print largest CI coefs
     vec->read(root, 0);
-    vec->max_abs_vals(Parameters_->nprint, mi_iac.data(), mi_ibc.data(), mi_iaidx.data(), mi_ibidx.data(), mi_coeff.data(), Parameters_->neg_only);
+    vec->max_abs_vals(Parameters_->nprint, mi_iac.data(), mi_ibc.data(), mi_iaidx.data(), mi_ibidx.data(), mi_coeff, Parameters_->neg_only);
     print_vec(Parameters_->nprint, mi_iac, mi_ibc, mi_iaidx, mi_ibidx, mi_coeff);
 }
 

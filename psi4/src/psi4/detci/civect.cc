@@ -743,7 +743,7 @@ void CIvect::setarray(const double *a, size_t len) {
     }
 }
 
-void CIvect::max_abs_vals(size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, double *coeff, bool neg_only) {
+void CIvect::max_abs_vals(size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, std::vector<double>& coeff, bool neg_only) {
     int i;
     double minval = 0.0;
 
@@ -772,7 +772,7 @@ void CIvect::max_abs_vals(size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, 
     } /* end case icore==0 */
 }
 
-double CIvect::blk_max_abs_vals(size_t i, bool offdiag, size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, double *coeff,
+double CIvect::blk_max_abs_vals(size_t i, bool offdiag, size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, std::vector<double>& coeff,
                                 double minval, bool neg_only) {
     size_t n;
     double value, abs_value;

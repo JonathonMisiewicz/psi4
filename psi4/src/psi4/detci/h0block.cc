@@ -85,7 +85,7 @@ void CIWavefunction::H0block_init(size_t size) {
         H0block_->H0b_diag = init_matrix(H0block_->size, H0block_->size);
         H0block_->H0b_eigvals = init_array(H0block_->size);
         H0block_->tmp1 = init_matrix(H0block_->size, H0block_->size);
-        H0block_->H00 = init_array(size2);
+        H0block_->H00 = std::vector<double>(size2, 0);
         H0block_->c0b = init_array(size2);
         H0block_->c0bp = init_array(size2);
         H0block_->s0b = init_array(size2);
@@ -113,6 +113,7 @@ void CIWavefunction::H0block_resize() {
     else
         size2 = H0block_->size;
     if (H0block_->size) {
+        H0block_->H00.resize(H0block_->size);
         H0block_->alplist.resize(H0block_->size);
         H0block_->betlist.resize(H0block_->size);
         H0block_->alpidx.resize(H0block_->size);
@@ -130,7 +131,6 @@ void CIWavefunction::H0block_free() {
         }
         free_matrix(H0block_->H0b_diag, H0block_->osize);
         free_matrix(H0block_->tmp1, H0block_->osize);
-        free(H0block_->H00);
         free(H0block_->c0b);
         free(H0block_->c0bp);
         free(H0block_->s0b);

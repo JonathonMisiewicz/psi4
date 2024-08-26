@@ -264,7 +264,7 @@ struct H_zero_block {
     double **H0b_diag;          /* Eigenvectors of H0 block */
     double *H0b_diag_transpose; /* tmp array for Transpose of Eigenvectors of H0 block */
     double *H0b_eigvals;        /* Eigenvalues of H0 block */
-    double *H00;                /* diag elements of H0 block */
+    std::vector<double> H00;    /* diag elements of H0 block */
     int size;                   /* size of H0 block */
     int osize;                  /* original (dimensioned size); can be reduced
                                    for Ms=0 cases by H0block_pairup() */

@@ -483,7 +483,7 @@ void CIWavefunction::mitrush_iter(CIvect &Hd, struct stringwr **alplist, struct 
             free_matrix(evecs2x2, 2);
             outfile->Printf("\n\n* ROOT 1 CI total energy = %19.15lf\n", E + enuc);
 
-            Cvec.max_abs_vals(Parameters_->nprint, mi_iac.data(), mi_ibc.data(), mi_iaidx.data(), mi_ibidx.data(), mi_coeff.data(), Parameters_->neg_only);
+            Cvec.max_abs_vals(Parameters_->nprint, mi_iac.data(), mi_ibc.data(), mi_iaidx.data(), mi_ibidx.data(), mi_coeff, Parameters_->neg_only);
             print_vec(Parameters_->nprint, mi_iac, mi_ibc, mi_iaidx, mi_ibidx, mi_coeff);
             Parameters_->diag_h_converged = true;
             return;

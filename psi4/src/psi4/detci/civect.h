@@ -173,8 +173,8 @@ class CIvect {
     void print();
     double operator*(CIvect &b);
     void setarray(const double *a, size_t len);
-    void max_abs_vals(size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, double *coeff, bool neg_only);
-    double blk_max_abs_vals(size_t i, bool offdiag, size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, double *coeff,
+    void max_abs_vals(size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, std::vector<double>& coeff, bool neg_only);
+    double blk_max_abs_vals(size_t i, bool offdiag, size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, std::vector<double>& coeff,
                             double minval, bool neg_only);
     void det2strings(size_t det, int *alp_code, int *bet_code, int *alp_idx, int *bet_idx);
     size_t strings2det(int alp_code, int alp_idx, int bet_code, int bet_idx);
