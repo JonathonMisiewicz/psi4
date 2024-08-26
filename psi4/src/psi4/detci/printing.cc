@@ -67,8 +67,8 @@ extern int str_rel2abs(int relidx, int listnum, struct olsen_graph *Graph);
 ** Print the Most Important Determinants in the CI vector
 ** David Sherrill, February 1995
 */
-void CIWavefunction::print_vec(size_t nprint, const std::vector<int>& Ialist, const std::vector<int>& Iblist,
-                               const std::vector<int>& Iaidx, const std::vector<int>& Ibidx, const std::vector<double>& coeff) {
+void CIWavefunction::print_vec(size_t nprint, const std::vector<size_t>& Ialist, const std::vector<size_t>& Iblist,
+                               const std::vector<size_t>& Iaidx, const std::vector<size_t>& Ibidx, const std::vector<double>& coeff) {
     int Ia_abs, Ib_abs;
 
     /* print out the list of most important determinants */

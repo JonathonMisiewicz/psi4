@@ -659,7 +659,7 @@ std::shared_ptr<SOMCSCF> CIWavefunction::mcscf_object() {
 }
 
 void CIWavefunction::print_vector(SharedCIVector vec, int root) {
-    std::vector<int> mi_iac(Parameters_->nprint, 0), mi_ibc(Parameters_->nprint, 0), mi_iaidx(Parameters_->nprint, 0), mi_ibidx(Parameters_->nprint, 0);
+    std::vector<size_t> mi_iac(Parameters_->nprint, 0), mi_ibc(Parameters_->nprint, 0), mi_iaidx(Parameters_->nprint, 0), mi_ibidx(Parameters_->nprint, 0);
     std::vector<double> mi_coeff(Parameters_->nprint, 0);
 
     // Print largest CI coefs

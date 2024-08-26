@@ -743,8 +743,8 @@ void CIvect::setarray(const double *a, size_t len) {
     }
 }
 
-void CIvect::max_abs_vals(int nval, int *iac, int *ibc, int *iaidx, int *ibidx, double *coeff, int neg_only) {
-    int i, buf, irrep;
+void CIvect::max_abs_vals(size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, double *coeff, bool neg_only) {
+    int i;
     double minval = 0.0;
 
     if (icore_ == 1) {
@@ -754,9 +754,9 @@ void CIvect::max_abs_vals(int nval, int *iac, int *ibc, int *iaidx, int *ibidx, 
     } /* end case icore==1 */
 
     if (icore_ == 2) { /* symmetry block at a time */
-        for (buf = 0; buf < buf_per_vect_; buf++) {
+        for (size_t buf = 0; buf < buf_per_vect_; buf++) {
             if (!read(cur_vect_, buf)) continue;
-            irrep = buf2blk_[buf];
+            auto irrep = buf2blk_[buf];
             for (i = first_ablk_[irrep]; i <= last_ablk_[irrep]; i++) {
                 minval = blk_max_abs_vals(i, buf_offdiag_[buf], nval, iac, ibc, iaidx, ibidx, coeff, minval, neg_only);
             }
@@ -764,7 +764,7 @@ void CIvect::max_abs_vals(int nval, int *iac, int *ibc, int *iaidx, int *ibidx, 
     } /* end case icore==2 */
 
     if (icore_ == 0) { /* RAS block at a time */
-        for (buf = 0; buf < buf_per_vect_; buf++) {
+        for (size_t buf = 0; buf < buf_per_vect_; buf++) {
             if (!read(cur_vect_, buf)) continue;
             i = buf2blk_[buf];
             minval = blk_max_abs_vals(i, buf_offdiag_[buf], nval, iac, ibc, iaidx, ibidx, coeff, minval, neg_only);
@@ -772,21 +772,20 @@ void CIvect::max_abs_vals(int nval, int *iac, int *ibc, int *iaidx, int *ibidx, 
     } /* end case icore==0 */
 }
 
-double CIvect::blk_max_abs_vals(int i, int offdiag, int nval, int *iac, int *ibc, int *iaidx, int *ibidx, double *coeff,
-                                double minval, int neg_only) {
-    int j, k, m, n;
+double CIvect::blk_max_abs_vals(size_t i, bool offdiag, size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, double *coeff,
+                                double minval, bool neg_only) {
+    size_t n;
     double value, abs_value;
-    int iacode, ibcode;
 
-    iacode = Ia_code_[i];
-    ibcode = Ib_code_[i];
-    for (j = 0; j < Ia_size_[i]; j++) {
-        for (k = 0; k < Ib_size_[i]; k++) {
+    auto iacode = Ia_code_[i];
+    auto ibcode = Ib_code_[i];
+    for (size_t j = 0; j < Ia_size_[i]; j++) {
+        for (size_t k = 0; k < Ib_size_[i]; k++) {
             value = blocks_[i][j][k];
             if ((value > 0.0) && (neg_only)) continue;
             abs_value = std::fabs(value);
             if (abs_value >= std::fabs(minval)) {
-                for (m = 0; m < nval; m++) {
+                for (size_t m = 0; m < nval; m++) {
                     if (abs_value > std::fabs(coeff[m])) {
                         for (n = nval - 1; n > m; n--) {
                             coeff[n] = coeff[n - 1];
@@ -809,7 +808,7 @@ double CIvect::blk_max_abs_vals(int i, int offdiag, int nval, int *iac, int *ibc
             if (offdiag) {
                 if (CI_Params_->Ms0 && ((int)CI_Params_->S % 2) && (!neg_only)) value = -value;
                 if (abs_value >= minval) {
-                    for (m = 0; m < nval; m++) {
+                    for (size_t m = 0; m < nval; m++) {
                         if (abs_value > std::fabs(coeff[m])) {
                             for (n = nval - 1; n > m; n--) {
                                 coeff[n] = coeff[n - 1];
@@ -900,8 +899,8 @@ void CIvect::diag_mat_els(struct stringwr **alplist, struct stringwr **betlist, 
 
             if (CI_Params_->hd_otf && CI_H0block_->size) {
                 minval = blk_max_abs_vals(block, 0, (CI_H0block_->size + CI_H0block_->coupling_size),
-                                          CI_H0block_->alplist, CI_H0block_->betlist, CI_H0block_->alpidx,
-                                          CI_H0block_->betidx, CI_H0block_->H00, minval, CI_Params_->neg_only);
+                                          CI_H0block_->alplist.data(), CI_H0block_->betlist.data(), CI_H0block_->alpidx.data(),
+                                          CI_H0block_->betidx.data(), CI_H0block_->H00, minval, CI_Params_->neg_only);
             }
         }
         if (!CI_Params_->hd_otf) write(0, 0);
@@ -944,8 +943,8 @@ void CIvect::diag_mat_els(struct stringwr **alplist, struct stringwr **betlist, 
                 if (CI_Params_->hd_otf && CI_H0block_->size) {
                     minval =
                         blk_max_abs_vals(block, buf_offdiag_[buf], (CI_H0block_->size + CI_H0block_->coupling_size),
-                                         CI_H0block_->alplist, CI_H0block_->betlist, CI_H0block_->alpidx,
-                                         CI_H0block_->betidx, CI_H0block_->H00, minval, CI_Params_->neg_only);
+                                         CI_H0block_->alplist.data(), CI_H0block_->betlist.data(), CI_H0block_->alpidx.data(),
+                                         CI_H0block_->betidx.data(), CI_H0block_->H00, minval, CI_Params_->neg_only);
                 }
             }
             if (!CI_Params_->hd_otf) write(0, buf);
@@ -980,8 +979,8 @@ void CIvect::diag_mat_els(struct stringwr **alplist, struct stringwr **betlist, 
             }
             if (CI_Params_->hd_otf && CI_H0block_->size) {
                 minval = blk_max_abs_vals(block, buf_offdiag_[buf], (CI_H0block_->size + CI_H0block_->coupling_size),
-                                          CI_H0block_->alplist, CI_H0block_->betlist, CI_H0block_->alpidx,
-                                          CI_H0block_->betidx, CI_H0block_->H00, minval, CI_Params_->neg_only);
+                                          CI_H0block_->alplist.data(), CI_H0block_->betlist.data(), CI_H0block_->alpidx.data(),
+                                          CI_H0block_->betidx.data(), CI_H0block_->H00, minval, CI_Params_->neg_only);
             }
             if (!CI_Params_->hd_otf) write(0, buf);
         }
@@ -1125,12 +1124,16 @@ void CIvect::print() {
     }
 }
 
-void CIvect::init_vals(int ivect, int nvals, int *alplist, int *alpidx, int *betlist, int *betidx, int *blknums,
-                       double *value) {
-    int i, j, buf, irrep, blk, ai, bi;
+void CIvect::init_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums, std::vector<double> value) {
+
+    auto nvals = alpidx.size();
+    if (nvals != betidx.size() || nvals != blknums.size() || nvals != value.size()) {
+        outfile->Printf("%d %d %d %d", nvals, betidx.size(), blknums.size(), value.size());
+        throw PSIEXCEPTION("(CIvect::init_vals): Input vectors have inconsistent size.");
+    }
 
     // ok here it seems safe to set zero blocks
-    for (i = 0; i < num_blocks_; i++) zero_blocks_[i] = 1;
+    for (size_t i = 0; i < num_blocks_; i++) zero_blocks_[i] = 1;
 
     /* this used to read >= PARM_GUESS_VEC_H0_BLOCK... but these
        are now gathered from a symnorm so I'll comment this out
@@ -1143,10 +1146,10 @@ void CIvect::init_vals(int ivect, int nvals, int *alplist, int *alpidx, int *bet
 
     if (icore_ == 1) { /* whole vector in-core */
         zero();
-        for (i = 0; i < nvals; i++) {
-            blk = blknums[i];
-            ai = alpidx[i];
-            bi = betidx[i];
+        for (size_t i = 0; i < nvals; i++) {
+            const auto& blk = blknums[i];
+            const auto& ai = alpidx[i];
+            const auto& bi = betidx[i];
             blocks_[blk][ai][bi] = value[i];
             zero_blocks_[blk] = 0;
         }
@@ -1154,15 +1157,15 @@ void CIvect::init_vals(int ivect, int nvals, int *alplist, int *alpidx, int *bet
     } /* end icore=1 */
 
     if (icore_ == 2) { /* whole symmetry block in core */
-        for (buf = 0; buf < buf_per_vect_; buf++) {
-            irrep = buf2blk_[buf];
+        for (size_t buf = 0; buf < buf_per_vect_; buf++) {
+            const auto& irrep = buf2blk_[buf];
             if (first_ablk_[irrep] < 0) continue;
             zero();
-            for (blk = first_ablk_[irrep]; blk <= last_ablk_[irrep]; blk++) {
-                for (j = 0; j < nvals; j++) {
+            for (size_t blk = first_ablk_[irrep]; blk <= last_ablk_[irrep]; blk++) {
+                for (size_t j = 0; j < nvals; j++) {
                     if (blknums[j] == blk) {
-                        ai = alpidx[j];
-                        bi = betidx[j];
+                        const auto& ai = alpidx[j];
+                        const auto& bi = betidx[j];
                         blocks_[blk][ai][bi] = value[j];
                         zero_blocks_[blk] = 0;
                     }
@@ -1174,14 +1177,13 @@ void CIvect::init_vals(int ivect, int nvals, int *alplist, int *alpidx, int *bet
     } /* end icore=2 */
 
     if (icore_ == 0) { /* one subblock at a time */
-        for (buf = 0; buf < buf_per_vect_; buf++) {
+        for (size_t buf = 0; buf < buf_per_vect_; buf++) {
             zero();
-            for (i = 0; i < nvals; i++) {
-                blk = blknums[i];
-                if (blk == buf2blk_[buf]) {
-                    ai = alpidx[i];
-                    bi = betidx[i];
-                    j = ai * Ib_size_[blk] + bi;
+            for (size_t i = 0; i < nvals; i++) {
+                if (const auto& blk = blknums[i]; blk == buf2blk_[buf]) {
+                    const auto& ai = alpidx[i];
+                    const auto& bi = betidx[i];
+                    const auto j = ai * Ib_size_[blk] + bi;
                     buffer_[j] = value[i];
                     zero_blocks_[blk] = 0;
                     if (Ms0_) zero_blocks_[decode_[Ib_code_[blk]][Ia_code_[blk]]] = 0;
@@ -1192,10 +1194,16 @@ void CIvect::init_vals(int ivect, int nvals, int *alplist, int *alpidx, int *bet
     }     /* end icore=0 */
 }
 
-void CIvect::set_vals(int ivect, int nvals, int *alplist, int *alpidx, int *betlist, int *betidx, int *blknums,
-                      double *value) {
+void CIvect::set_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums,
+                      std::vector<double> value) {
     int i, j, buf, irrep, blk, ai, bi, vec_modified;
     double tval;
+    
+    auto nvals = alpidx.size();
+    if (nvals != betidx.size() || nvals != blknums.size() || nvals != value.size()) {
+        outfile->Printf("%d %d %d %d", nvals, betidx.size(), blknums.size(), value.size());
+        throw PSIEXCEPTION("(CIvect::set_vals): Input vectors have inconsistent size.");
+    }
 
     tval = value[0];
 
@@ -1265,12 +1273,17 @@ void CIvect::set_vals(int ivect, int nvals, int *alplist, int *alpidx, int *betl
     }     /* end icore=0 */
 }
 
-void CIvect::extract_vals(int ivect, int nvals, int *alplist, int *alpidx, int *betlist, int *betidx, int *blknums,
-                          double *value) {
+void CIvect::extract_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums, std::vector<double> value) {
     int i, j, buf, irrep, blk, ai, bi, vec_modified;
     double tval;
 
     tval = value[0];
+
+    auto nvals = alpidx.size();
+    if (nvals != betidx.size() || nvals != blknums.size() || nvals != value.size()) {
+        outfile->Printf("%d %d %d %d", nvals, betidx.size(), blknums.size(), value.size());
+        throw PSIEXCEPTION("(CIvect::extract_vals): Input vectors have inconsistent size.");
+    }
 
     if (CI_Params_->guess_vector == PARM_GUESS_VEC_H0_BLOCK) {
         for (i = 0; i < nvals; i++) CI_H0block_->c0b[i] = value[i];
@@ -3077,8 +3090,6 @@ void CIvect::h0block_buf_precon(double *nx, int root) {
 double CIvect::calc_ssq(double *buffer1, double *buffer2, struct stringwr **alplist, struct stringwr **betlist,
                         int vec_num) {
     int bra_block, ket_block;
-    int ket_ac, ket_bc, ket_nas, ket_nbs;
-    int bra_ac, bra_bc, bra_nas, bra_nbs;
     int ket_birr, bra_birr;
     double tval = 0.0;
     double tval2 = 0.0;
@@ -3090,8 +3101,8 @@ double CIvect::calc_ssq(double *buffer1, double *buffer2, struct stringwr **alpl
 
     if (CI_Params_->print_ > 4) {
         for (i = 0; i < num_blocks_; i++) {
-            ket_nas = Ia_size_[i];
-            ket_nbs = Ib_size_[i];
+            const auto& ket_nas = Ia_size_[i];
+            const auto& ket_nbs = Ib_size_[i];
             if (ket_nas == 0 || ket_nbs == 0) continue;
             print_mat(blocks_[i], ket_nas, ket_nbs, "outfile");
         }
@@ -3099,10 +3110,10 @@ double CIvect::calc_ssq(double *buffer1, double *buffer2, struct stringwr **alpl
 
     /* loop over ket blocks of c */
     for (ket_block = 0; ket_block < num_blocks_; ket_block++) {
-        ket_ac = Ia_code_[ket_block];
-        ket_bc = Ib_code_[ket_block];
-        ket_nas = Ia_size_[ket_block];
-        ket_nbs = Ib_size_[ket_block];
+        const auto& ket_ac = Ia_code_[ket_block];
+        const auto& ket_bc = Ib_code_[ket_block];
+        const auto& ket_nas = Ia_size_[ket_block];
+        const auto& ket_nbs = Ib_size_[ket_block];
         if (ket_nas == 0 || ket_nbs == 0) continue;
 
         // CDS help: Is this correct?
@@ -3110,10 +3121,10 @@ double CIvect::calc_ssq(double *buffer1, double *buffer2, struct stringwr **alpl
         ket_birr = ket_block / codes_per_irrep_;
 
         for (bra_block = 0; bra_block < num_blocks_; bra_block++) {
-            bra_ac = Ia_code_[bra_block];
-            bra_bc = Ib_code_[bra_block];
-            bra_nas = Ia_size_[bra_block];
-            bra_nbs = Ib_size_[bra_block];
+            const auto& bra_ac = Ia_code_[bra_block];
+            const auto& bra_bc = Ib_code_[bra_block];
+            const auto& bra_nas = Ia_size_[bra_block];
+            const auto& bra_nbs = Ib_size_[bra_block];
             if (bra_nas == 0 || bra_nbs == 0) continue;
 
             // CDS help: Is this correct?
@@ -4102,7 +4113,7 @@ void CIvect::calc_hd_block_z_ave(struct stringwr *alplist_local, struct stringwr
     }
 }
 double CIvect::ssq(struct stringwr *alplist, struct stringwr *betlist, double **CL, double **CR, int nas, int nbs,
-                   int Ja_list, int Jb_list) {
+                   size_t Ja_list, size_t Jb_list) {
     struct stringwr *Ia, *Ib;
     size_t Ia_ex, Ib_ex;
     int Ia_idx, Ib_idx;

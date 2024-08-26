@@ -89,7 +89,7 @@ void CIWavefunction::mitrush_iter(CIvect &Hd, struct stringwr **alplist, struct 
     double **H2x2, *evals2x2, **evecs2x2, alast, acur;
     double x, y, c1norm = 0.0;
     int sm_tridim, buf;
-    double *sm_mat, *sm_evals, **sm_evecs;
+    double *sm_mat, **sm_evecs;
     double testS = 0.0;
     double tval, *buffer1, *buffer2;
     double **alpha, chknorm;
@@ -134,7 +134,7 @@ void CIWavefunction::mitrush_iter(CIvect &Hd, struct stringwr **alplist, struct 
 
     /* small arrays to hold most important config information */
 
-    std::vector<int> mi_iac(Parameters_->nprint, 0), mi_ibc(Parameters_->nprint, 0), mi_iaidx(Parameters_->nprint, 0), mi_ibidx(Parameters_->nprint, 0);
+    std::vector<size_t> mi_iac(Parameters_->nprint, 0), mi_ibc(Parameters_->nprint, 0), mi_iaidx(Parameters_->nprint, 0), mi_ibidx(Parameters_->nprint, 0);
     std::vector<double> mi_coeff(Parameters_->nprint, 0);
 
     /* stuff for the 2x2 Davidson procedure */
@@ -165,8 +165,7 @@ void CIWavefunction::mitrush_iter(CIvect &Hd, struct stringwr **alplist, struct 
                Parameters_->num_init_vecs == 1) { /* use unit vector */
         tval = 1.0;
         Cvec.buf_lock(buffer1);
-        Cvec.init_vals(0, 1, &(CalcInfo_->ref_alp_list), &(CalcInfo_->ref_alp_rel), &(CalcInfo_->ref_bet_list),
-                       &(CalcInfo_->ref_bet_rel), H0block_->blknum, &tval);
+        Cvec.init_vals(0, {CalcInfo_->ref_alp_rel}, {CalcInfo_->ref_bet_rel}, {H0block_->blknum}, {tval});
         Cvec.write_num_vecs(1);
         k = 1;
         Cvec.read(0, 0);
@@ -179,7 +178,7 @@ void CIWavefunction::mitrush_iter(CIvect &Hd, struct stringwr **alplist, struct 
             L = H0block_->size;
         else
             L = H0block_->guess_size;
-        sm_evals = init_array(L);
+        std::vector<double> sm_evals(L);
         /* need to fill out sm_evecs into b (pad w/ 0's) */
         outfile->Printf("Using %d initial trial vectors\n", Parameters_->num_init_vecs);
 
@@ -201,8 +200,7 @@ void CIWavefunction::mitrush_iter(CIvect &Hd, struct stringwr **alplist, struct 
 
             for (j = 0; j < L; j++) sm_evals[j] = H0block_->H0b_diag[j][i];
 
-            Cvec.init_vals(k, L, H0block_->alplist, H0block_->alpidx, H0block_->betlist, H0block_->betidx,
-                           H0block_->blknum, sm_evals);
+            Cvec.init_vals(k, H0block_->alpidx, H0block_->betidx, H0block_->blknum, sm_evals);
             Cvec.write_num_vecs(1);
             k++;
             /* MLL added 6-15-98 */
@@ -210,7 +208,6 @@ void CIWavefunction::mitrush_iter(CIvect &Hd, struct stringwr **alplist, struct 
             Cvec.symnorm(1.0, CI_VEC, TRUE);
         }
 
-        free(sm_evals);
         Sigma.set_zero_blocks_all();
     }
 

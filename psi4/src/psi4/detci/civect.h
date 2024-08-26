@@ -124,7 +124,7 @@ class CIvect {
     bool fopen_;                   /* Are CIVec files open? */
 
     double ssq(struct stringwr *alplist, struct stringwr *betlist, double **CL, double **CR, int nas, int nbs,
-               int Ja_list, int Jb_list);
+               size_t Ja_list, size_t Jb_list);
 
    public:
     CIvect();
@@ -173,21 +173,18 @@ class CIvect {
     void print();
     double operator*(CIvect &b);
     void setarray(const double *a, size_t len);
-    void max_abs_vals(int nval, int *iac, int *ibc, int *iaidx, int *ibidx, double *coeff, int neg_only);
-    double blk_max_abs_vals(int i, int offdiag, int nval, int *iac, int *ibc, int *iaidx, int *ibidx, double *coeff,
-                            double minval, int neg_only);
+    void max_abs_vals(size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, double *coeff, bool neg_only);
+    double blk_max_abs_vals(size_t i, bool offdiag, size_t nval, size_t *iac, size_t *ibc, size_t *iaidx, size_t *ibidx, double *coeff,
+                            double minval, bool neg_only);
     void det2strings(size_t det, int *alp_code, int *bet_code, int *alp_idx, int *bet_idx);
     size_t strings2det(int alp_code, int alp_idx, int bet_code, int bet_idx);
     void diag_mat_els(struct stringwr **alplist, struct stringwr **betlist, double *oei, double *tei, double edrc,
                       int na, int nb, int nbf, int method);
     void diag_mat_els_otf(struct stringwr **alplist, struct stringwr **betlist, double *oei, double *tei, double edrc,
                           int na, int nb, int nbf, int buf, int method);
-    void init_vals(int ivect, int nvals, int *alplist, int *alpidx, int *betlist, int *betidx, int *blknums,
-                   double *value);
-    void set_vals(int ivect, int nvals, int *alplist, int *alpidx, int *betlist, int *betidx, int *blknums,
-                  double *value);
-    void extract_vals(int ivect, int nvals, int *alplist, int *alpidx, int *betlist, int *betidx, int *blknums,
-                      double *value);
+    void init_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums, std::vector<double> value);
+    void set_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums, std::vector<double> value);
+    void extract_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums, std::vector<double> value);
     void symnorm(double a, int vecode, int gather_vec);
     double zero_det(int iac, int ia, int ibc, int ib);
     void scale(double a, int vecode, int gather_vec);

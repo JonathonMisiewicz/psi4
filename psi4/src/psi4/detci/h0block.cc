@@ -90,12 +90,12 @@ void CIWavefunction::H0block_init(size_t size) {
         H0block_->c0bp = init_array(size2);
         H0block_->s0b = init_array(size2);
         H0block_->s0bp = init_array(size2);
-        H0block_->alplist = init_int_array(size2);
-        H0block_->betlist = init_int_array(size2);
-        H0block_->alpidx = init_int_array(size2);
-        H0block_->betidx = init_int_array(size2);
-        H0block_->blknum = init_int_array(size2);
-        H0block_->pair = init_int_array(size2);
+        H0block_->alplist = std::vector<size_t>(size2, 0);
+        H0block_->betlist = std::vector<size_t>(size2, 0);
+        H0block_->alpidx = std::vector<size_t>(size2, 0);
+        H0block_->betidx = std::vector<size_t>(size2, 0);
+        H0block_->blknum = std::vector<size_t>(size2, 0);
+        H0block_->pair = std::vector<int>(size2, 0);
         if (Parameters_->precon == PRECON_H0BLOCK_INVERT)
             H0block_->H0b_inv = init_matrix(H0block_->size, H0block_->size);
 
@@ -103,6 +103,22 @@ void CIWavefunction::H0block_init(size_t size) {
             H0block_->tmp_array1 = init_array(size2);
             H0block_->tmp_array2 = init_array(size2);
         }
+    }
+}
+
+void CIWavefunction::H0block_resize() {
+    size_t size2;
+    if (H0block_->coupling_size)
+        size2 = H0block_->size + H0block_->coupling_size;
+    else
+        size2 = H0block_->size;
+    if (H0block_->size) {
+        H0block_->alplist.resize(H0block_->size);
+        H0block_->betlist.resize(H0block_->size);
+        H0block_->alpidx.resize(H0block_->size);
+        H0block_->betidx.resize(H0block_->size);
+        H0block_->blknum.resize(H0block_->size);
+        H0block_->pair.resize(H0block_->size);
     }
 }
 
@@ -119,12 +135,6 @@ void CIWavefunction::H0block_free() {
         free(H0block_->c0bp);
         free(H0block_->s0b);
         free(H0block_->s0bp);
-        free(H0block_->alplist);
-        free(H0block_->betlist);
-        free(H0block_->alpidx);
-        free(H0block_->betidx);
-        free(H0block_->blknum);
-        free(H0block_->pair);
         if (Parameters_->precon == PRECON_H0BLOCK_INVERT) {
             free_matrix(H0block_->H0b_inv, H0block_->osize);
         }
@@ -580,6 +590,7 @@ void CIWavefunction::H0block_spin_cpl_chk() {
 
         H0block_->coupling_size = newsize - H0block_->size;
     }
+    H0block_resize();
 }
 
 /*

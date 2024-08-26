@@ -278,12 +278,12 @@ struct H_zero_block {
     double *c0b, *s0b;          /* gathered C and sigma vectors */
     double *c0bp, *s0bp;        /* INV(H0 - E) times c0b and s0b */
 
-    int *alplist;        /* list (graph) containing alpha string */
-    int *betlist;        /* list containing beta string */
-    int *alpidx;         /* relative index of alpha string */
-    int *betidx;         /* relative index of beta string */
-    int *blknum;         /* block number for each member */
-    int *pair;           /* which H0block member is related by
+    std::vector<size_t> alplist;        /* list (graph) containing alpha string */
+    std::vector<size_t> betlist;        /* list containing beta string */
+    std::vector<size_t> alpidx;         /* relative index of alpha string */
+    std::vector<size_t> betidx;         /* relative index of beta string */
+    std::vector<size_t> blknum;         /* block number for each member */
+    std::vector<int> pair;           /* which H0block member is related by
                             interchange of alpha and beta indices */
     double **tmp1;       /* tmp matrix to hold (H0 - E) */
     int nbuf;            /* number of buffers in CIvect */
@@ -387,8 +387,8 @@ struct calcinfo {
     int ref_bet;                     /* address of reference beta string */
     int ref_alp_list;                /* string list containing reference alpha string */
     int ref_bet_list;                /* string list containing reference beta string */
-    int ref_alp_rel;                 /* relative index of reference alpha string */
-    int ref_bet_rel;                 /* relative index of reference beta string */
+    size_t ref_alp_rel;                 /* relative index of reference alpha string */
+    size_t ref_bet_rel;                 /* relative index of reference beta string */
     int ref_sym;                     /* symmetry (irrep) of reference determinant */
     int spab;                        /* socc per alpha or beta, for singlet states */
     std::vector<Dimension> ras_opi;  /* num orbs per irr per ras space ras_opi[ras][irr] */

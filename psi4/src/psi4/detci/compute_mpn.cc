@@ -239,8 +239,7 @@ void CIWavefunction::mpn_generator(CIvect &Hd) {
 
     Cvec.h0block_buf_init();
     tval = 1.0;
-    Cvec.init_vals(0, 1, &(CalcInfo_->ref_alp_list), &(CalcInfo_->ref_alp_rel), &(CalcInfo_->ref_bet_list),
-                   &(CalcInfo_->ref_bet_rel), H0block_->blknum, &tval);
+    Cvec.init_vals(0, {CalcInfo_->ref_alp_rel}, {CalcInfo_->ref_bet_rel}, {H0block_->blknum}, {tval});
     if (print_ >= 5) {
         outfile->Printf("Zeroth-order wavefunction\n");
         Cvec.print();
@@ -298,8 +297,7 @@ void CIWavefunction::mpn_generator(CIvect &Hd) {
         Cvec.print();
     }
     Cvec.read((1 - kvec_offset), 0);
-    Cvec.set_vals((1 - kvec_offset), 1, &(CalcInfo_->ref_alp_list), &(CalcInfo_->ref_alp_rel),
-                  &(CalcInfo_->ref_bet_list), &(CalcInfo_->ref_bet_rel), H0block_->blknum, &tval);
+    Cvec.set_vals((1 - kvec_offset), {CalcInfo_->ref_alp_rel}, {CalcInfo_->ref_bet_rel}, {H0block_->blknum}, {tval});
     Sigma.buf_lock(buffer2);
 
     if (print_ >= 5) {
@@ -332,8 +330,7 @@ void CIWavefunction::mpn_generator(CIvect &Hd) {
             Cvec.read(0, 0); /* E_k = C_0 x S_k */
             tval = Cvec * Sigma;
         } else
-            Sigma.extract_vals(0, 1, &(CalcInfo_->ref_alp_list), &(CalcInfo_->ref_alp_rel), &(CalcInfo_->ref_bet_list),
-                               &(CalcInfo_->ref_bet_rel), H0block_->blknum, &tval);
+            Sigma.extract_vals(0, {CalcInfo_->ref_alp_rel}, {CalcInfo_->ref_bet_rel}, {H0block_->blknum}, {tval});
         mpk_energy[k + 1] = tval;
         Empn += tval;
         outfile->Printf("  %2d  %25.15f %25.15f", k + 1, mpk_energy[k + 1], Empn);
@@ -462,8 +459,7 @@ void CIWavefunction::mpn_generator(CIvect &Hd) {
         }
 
         tval = 0.0;
-        Cvec.set_vals(k + 1, 1, &(CalcInfo_->ref_alp_list), &(CalcInfo_->ref_alp_rel), &(CalcInfo_->ref_bet_list),
-                      &(CalcInfo_->ref_bet_rel), H0block_->blknum, &tval);
+        Cvec.set_vals(k + 1, {CalcInfo_->ref_alp_rel}, {CalcInfo_->ref_bet_rel}, {H0block_->blknum}, {tval});
         Sigma.buf_lock(buffer2);
         k++;
         Cvec.copy_zero_blocks(Sigma);

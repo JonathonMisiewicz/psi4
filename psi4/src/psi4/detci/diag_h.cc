@@ -172,8 +172,8 @@ int CIWavefunction::diag_h(double conv_e, double conv_rms) {
             }
 
             if (!Parameters_->hd_otf)
-                Hd.max_abs_vals(H0block_->size + H0block_->coupling_size, H0block_->alplist, H0block_->betlist,
-                                H0block_->alpidx, H0block_->betidx, H0block_->H00, Parameters_->neg_only);
+                Hd.max_abs_vals(H0block_->size + H0block_->coupling_size, H0block_->alplist.data(), H0block_->betlist.data(),
+                                H0block_->alpidx.data(), H0block_->betidx.data(), H0block_->H00, Parameters_->neg_only);
         }
 
         if (Parameters_->hd_otf) psio_close(Parameters_->hd_filenum, 1);

@@ -72,7 +72,7 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
     double *mi_coeff, **clpse_dot, **tmpmat;
     double *oei, *tei, **G, ***alpha, **lambda, ****m_alpha, ***m_lambda;
     int sm_tridim;
-    double *sm_mat, *sm_evals, **sm_evecs;
+    double *sm_mat, **sm_evecs;
     int iter = 0, converged = 0;
     int iter2 = 0; /* iterations since last collapse */
     double tval, tval2, *buffer1, *buffer2;
@@ -374,8 +374,7 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
     else if (Parameters_->guess_vector == PARM_GUESS_VEC_UNIT || (dvec_read_fail && Parameters_->h0blocksize == 0)) {
         tval = 1.0;
         Cvec.buf_lock(buffer1);
-        Cvec.init_vals(0, 1, &(CalcInfo_->ref_alp_list), &(CalcInfo_->ref_alp_rel), &(CalcInfo_->ref_bet_list),
-                       &(CalcInfo_->ref_bet_rel), H0block_->blknum, &tval);
+        Cvec.init_vals(0, {CalcInfo_->ref_alp_rel}, {CalcInfo_->ref_bet_rel}, {H0block_->blknum}, {tval});
         Cvec.buf_unlock();
         Cvec.write_num_vecs(1);
         Sigma.set_zero_blocks_all();
@@ -390,7 +389,7 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
 
         /* outfile->Printf( " L = %d in sem.cc line 345\n", L); */
         /* N = CIblks.vectlen; The variable N is never used */
-        sm_evals = init_array(L);
+        std::vector<double> sm_evals(L);
 
         /* need to fill out sm_evecs into b (pad w/ 0's) */
         if (print_) outfile->Printf("    Using %d initial trial vectors\n\n", Parameters_->num_init_vecs);
@@ -442,8 +441,7 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
 
             for (j = 0; j < L; j++) sm_evals[j] = H0block_->H0b_diag[j][i];
 
-            Cvec.init_vals(k, L, H0block_->alplist, H0block_->alpidx, H0block_->betlist, H0block_->betidx,
-                           H0block_->blknum, sm_evals);
+            Cvec.init_vals(k, H0block_->alpidx, H0block_->betidx, H0block_->blknum, sm_evals);
 
             if (Parameters_->calc_ssq && Parameters_->icore == 1) {
                 Cvec.buf_unlock();
@@ -460,7 +458,6 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
         Cvec.write_num_vecs(k);
         Sigma.set_zero_blocks_all();
 
-        free(sm_evals);
         /* free(sm_mat);
         free_matrix(sm_evecs, L); */
     }
