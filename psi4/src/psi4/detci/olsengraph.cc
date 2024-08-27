@@ -49,6 +49,7 @@
 #include "psi4/libqt/qt.h"
 
 #include <iostream>
+#include <numeric>
 #include "psi4/detci/odometer.h"
 #include "psi4/detci/ciwave.h"
 #include "psi4/detci/structs.h"
@@ -64,7 +65,7 @@ extern void str_abs2rel(int absidx, int *relidx, int *listnum, struct olsen_grap
 void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps, int *orbsym, int ras1_lvl,
                 int ras1_min, int ras1_max, int ras3_lvl, int ras3_max, int num_drc_orbs, int num_expl_cor_orbs,
                 int ras4_lvl, int ras4_max, int ras34_max, struct params *CIparams);
-void og_add_walk(int ras1_idx, int ras3_num, int ras4_num, int *occs, int nel_expl, int norb, int nirreps,
+void og_add_walk(int ras1_idx, int ras3_num, int ras4_num, const std::vector<size_t>& occs, int nel_expl, int norb, int nirreps,
                  int num_drc_orbs, struct olsen_graph *Graph);
 int og_calc_y(struct level *lvl, int ci_orbs);
 void og_fill(int num_el, int norb, int nirreps, int num_drc_orbs, struct olsen_graph *Graph);
@@ -81,17 +82,14 @@ void CIWavefunction::form_strings() {
     int i, nlists, nirreps, ncodes;
     int irrep, code, listnum;
     int *occs;
-    outfile->Printf("Alpha\n");
 
     AlphaG_ = new olsen_graph[1];
-    outfile->Printf("Epsilon\n");
 
     // Make the graph
     olsengraph(AlphaG_, CalcInfo_->num_ci_orbs, CalcInfo_->num_alp, CalcInfo_->nirreps, CalcInfo_->orbsym,
                Parameters_->a_ras1_lvl, Parameters_->a_ras1_min, Parameters_->a_ras1_max, Parameters_->ras3_lvl,
                Parameters_->a_ras3_max, CalcInfo_->num_drc_orbs, CalcInfo_->num_expl_cor_orbs, Parameters_->ras4_lvl,
                Parameters_->a_ras4_max, Parameters_->a_ras34_max, Parameters_);
-    outfile->Printf("Zeta\n");
 
     if (print_ > 3) og_print(AlphaG_);
 
@@ -114,7 +112,6 @@ void CIWavefunction::form_strings() {
         }
     }
 
-    outfile->Printf("Beta\n");
     /* for beta string graph if necessary */
     if (CalcInfo_->iopen && !(Parameters_->Ms0)) {
         BetaG_ = new olsen_graph[1];
@@ -149,11 +146,9 @@ void CIWavefunction::form_strings() {
         betlist_ = alplist_;
         BetaG_ = AlphaG_;
     }
-    outfile->Printf("Gamma\n");
 
     /* get number of alpha/beta strings, ref symmetry, etc */
     set_ciblks();
-    outfile->Printf("Delta\n");
 
     /* if the user wants to filter out some initial guesses based on
        phases of two determinants, we need to convert their absolute
@@ -182,7 +177,6 @@ void CIWavefunction::form_strings() {
         str_abs2rel(Parameters_->follow_vec_Ib[i], &Parameters_->follow_vec_Ibridx[i], &Parameters_->follow_vec_Ibc[i],
                     BetaG_);
     }
-    outfile->Printf("Omega\n");
 }
 
 /*
@@ -234,7 +228,7 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
     int n1, n2, n3, n4;
     int n1max, n1min;
     int max_el_ras1;
-    int *occs, **encode_tmp;
+    int **encode_tmp;
     int i, j, k;
     int maxj, drc_sym = 0, code = 0, num_el_expl;
     struct stringgraph *sgptr;
@@ -243,8 +237,8 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
     //outfile->Printf("ras3_lvl = %d   ras3_max = %d\n", ras3_lvl, ras3_max);
 
     // Go ahead and set the occupations of the frozen orbs
-    occs = init_int_array(num_el);
-    for (i = 0; i < num_expl_cor_orbs; i++) occs[i] = i;
+    std::vector<size_t> occs(num_el, 0);
+    std::iota(occs.begin(), std::next(occs.begin(), num_expl_cor_orbs), 0);
 
     // orbs_frozen = num_fzc_orbs + num_expl_cor_orbs; CDS 4/15
 
@@ -257,7 +251,6 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
     std::vector<int> array1(num_el, 0), array2(num_el, 0), array3(num_el, 0), array4(num_el, 0);
 
     // Initialize the Graph data structure
-    outfile->Printf("Theta\n");
     Graph->num_el = num_el;
     num_el_expl = num_el - num_drc_orbs;
     Graph->num_el_expl = num_el - num_drc_orbs;
@@ -325,7 +318,6 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
         code = 1;
     }
 
-    outfile->Printf("Iota\n");
     Graph->encode = init_int_matrix(3, code);
     for (i = 0; i < code; i++) {
         Graph->encode[0][i] = encode_tmp[0][i];
@@ -363,7 +355,6 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
     // Employ the very useful Generalized Odometer
     //
 
-    outfile->Printf("Kappa\n");
     for (n1 = n1max; n1 >= n1min; n1--) {
         Ras1.size(n1);
         Ras1.set_min_lex(num_expl_cor_orbs);
@@ -434,8 +425,6 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
 
     } /* end loop over n1 */
 
-    free(occs);
-
     /* fill up the olsen graph from the ki's */
     og_fill(num_el_expl, ci_orbs, nirreps, num_drc_orbs, Graph);
 
@@ -474,7 +463,7 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
 ** Note: The newidx code excludes frozen core electrons from the num_el
 **       factor
 */
-void og_add_walk(int ras1_idx, int ras3_num, int ras4_num, int *occs, int nel_expl, int norb, int nirreps,
+void og_add_walk(int ras1_idx, int ras3_num, int ras4_num, const std::vector<size_t>& occs, int nel_expl, int norb, int nirreps,
                  int num_drc_orbs, struct olsen_graph *Graph) {
     int i;
     int irrep;
