@@ -182,9 +182,9 @@ class CIvect {
                       int na, int nb, int nbf, int method);
     void diag_mat_els_otf(struct stringwr **alplist, struct stringwr **betlist, double *oei, double *tei, double edrc,
                           int na, int nb, int nbf, int buf, int method);
-    void init_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums, std::vector<double> value);
-    void set_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums, std::vector<double> value);
-    void extract_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums, std::vector<double> value);
+    void init_vals(int ivect, const std::vector<size_t>& alpidx, const std::vector<size_t>& betidx, const std::vector<size_t>& blknums, const std::vector<double>& value);
+    void set_vals(int ivect, const std::vector<size_t>& alpidx, const std::vector<size_t>& betidx, const std::vector<size_t>& blknums, const std::vector<double>& value);
+    void extract_vals(int ivect, const std::vector<size_t>& alpidx, const std::vector<size_t>& betidx, const std::vector<size_t>& blknums, std::vector<double>& value);
     void symnorm(double a, int vecode, int gather_vec);
     double zero_det(int iac, int ia, int ibc, int ib);
     void scale(double a, int vecode, int gather_vec);

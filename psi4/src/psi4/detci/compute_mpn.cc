@@ -329,8 +329,11 @@ void CIWavefunction::mpn_generator(CIvect &Hd) {
         if (CalcInfo_->iopen) {
             Cvec.read(0, 0); /* E_k = C_0 x S_k */
             tval = Cvec * Sigma;
-        } else
-            Sigma.extract_vals(0, {CalcInfo_->ref_alp_rel}, {CalcInfo_->ref_bet_rel}, {H0block_->blknum}, {tval});
+        } else {
+            std::vector<double> vals(1, 0.0);
+            Sigma.extract_vals(0, {CalcInfo_->ref_alp_rel}, {CalcInfo_->ref_bet_rel}, {H0block_->blknum}, vals);
+            tval = vals[0];
+        }
         mpk_energy[k + 1] = tval;
         Empn += tval;
         outfile->Printf("  %2d  %25.15f %25.15f", k + 1, mpk_energy[k + 1], Empn);

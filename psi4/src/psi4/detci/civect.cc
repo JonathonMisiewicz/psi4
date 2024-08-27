@@ -1124,7 +1124,7 @@ void CIvect::print() {
     }
 }
 
-void CIvect::init_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums, std::vector<double> value) {
+void CIvect::init_vals(int ivect, const std::vector<size_t>& alpidx, const std::vector<size_t>& betidx, const std::vector<size_t>& blknums, const std::vector<double>& value) {
 
     auto nvals = alpidx.size();
     if (nvals != betidx.size() || nvals != blknums.size() || nvals != value.size()) {
@@ -1194,8 +1194,8 @@ void CIvect::init_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t
     }     /* end icore=0 */
 }
 
-void CIvect::set_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums,
-                      std::vector<double> value) {
+void CIvect::set_vals(int ivect, const std::vector<size_t>& alpidx, const std::vector<size_t>& betidx, const std::vector<size_t>& blknums,
+                      const std::vector<double>& value) {
     int i, j, buf, irrep, blk, ai, bi, vec_modified;
     double tval;
     
@@ -1273,7 +1273,7 @@ void CIvect::set_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t>
     }     /* end icore=0 */
 }
 
-void CIvect::extract_vals(int ivect, std::vector<size_t> alpidx, std::vector<size_t> betidx, std::vector<size_t> blknums, std::vector<double> value) {
+void CIvect::extract_vals(int ivect, const std::vector<size_t>& alpidx, const std::vector<size_t>& betidx, const std::vector<size_t>& blknums, std::vector<double>& value) {
     int i, j, buf, irrep, blk, ai, bi, vec_modified;
     double tval;
 
