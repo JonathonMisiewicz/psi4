@@ -39,6 +39,7 @@
 
 #include <cstdio>
 #include <string>
+#include <vector>
 
 #include "psi4/pragma.h"
 
@@ -73,6 +74,7 @@ PSI_API void arr_to_mat(double **a, double *b, int m, int n);
 //            int nr, int nl, int nc, int add) ;
 PSI_API void print_array(double *a, int m, std::string out);
 PSI_API void print_mat(double **a, int rows, int cols, std::string out);
+void print_stdvec(std::vector<double>& v, std::string out = "outfile");
 PSI_API void sq_to_tri(double **bmat, double *amat, int size);
 
 [[nodiscard]] int DSYEV_ascending(const int N, const double *const *const array, double *e_vals,

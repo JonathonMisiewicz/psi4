@@ -259,24 +259,24 @@ struct graph_set {
 };
 
 struct H_zero_block {
-    double **H0b;               /* H0 block */
-    double **H0b_inv;           /* inverse of block (H0 - E) */
-    double **H0b_diag;          /* Eigenvectors of H0 block */
-    double *H0b_diag_transpose; /* tmp array for Transpose of Eigenvectors of H0 block */
-    double *H0b_eigvals;        /* Eigenvalues of H0 block */
-    std::vector<double> H00;    /* diag elements of H0 block */
-    int size;                   /* size of H0 block */
-    int osize;                  /* original (dimensioned size); can be reduced
-                                   for Ms=0 cases by H0block_pairup() */
-    int guess_size;             /* size of initial H0 block guess which may
-                                   differ from size */
-    int oguess_size;            /* original guess size may change with
-                                   spin_cpl_chk() and pairup() */
-    int coupling_size;          /* size of H0 block coupling to secondary
-                                   space */
-    int ocoupling_size;         /* original size of coupling_size */
-    double *c0b, *s0b;          /* gathered C and sigma vectors */
-    double *c0bp, *s0bp;        /* INV(H0 - E) times c0b and s0b */
+    double **H0b;                       /* H0 block */
+    double **H0b_inv;                   /* inverse of block (H0 - E) */
+    double **H0b_diag;                  /* Eigenvectors of H0 block */
+    double *H0b_diag_transpose;         /* tmp array for Transpose of Eigenvectors of H0 block */
+    double *H0b_eigvals;                /* Eigenvalues of H0 block */
+    std::vector<double> H00;            /* diag elements of H0 block */
+    int size;                           /* size of H0 block */
+    int osize;                          /* original (dimensioned size); can be reduced
+                                           for Ms=0 cases by H0block_pairup() */
+    int guess_size;                     /* size of initial H0 block guess which may
+                                           differ from size */
+    int oguess_size;                    /* original guess size may change with
+                                           spin_cpl_chk() and pairup() */
+    int coupling_size;                  /* size of H0 block coupling to secondary
+                                           space */
+    int ocoupling_size;                 /* original size of coupling_size */
+    std::vector<double> c0b, s0b;       /* gathered C and sigma vectors */
+    std::vector<double> c0bp, s0bp;     /* INV(H0 - E) times c0b and s0b */
 
     std::vector<size_t> alplist;        /* list (graph) containing alpha string */
     std::vector<size_t> betlist;        /* list containing beta string */

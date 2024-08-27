@@ -105,4 +105,19 @@ void print_mat(double **a, int m, int n, std::string out) {
     printer->Printf("\n\n");
     // R.I.P. goto statements - Aug 4th 2010 - MSM
 }
+
+/*!
+** print_stdvec: Print a std::vector<double> to file pointer out.
+**
+** \param v   = vector to print
+** \param out = file pointer for output
+**
+** Returns: none
+**
+** \ingroup CIOMR
+*/
+void print_stdvec(std::vector<double>& v, std::string out) {
+    auto p = v.data();
+    print_mat(&(p), 1, v.size(), out);
+};
 }
