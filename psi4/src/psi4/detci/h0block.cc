@@ -81,7 +81,6 @@ void CIWavefunction::H0block_init(size_t size) {
 
     if (H0block_->size) {
         H0block_->H0b = Matrix("H0 block", H0block_->size, H0block_->size);
-        if (Parameters_->precon == PRECON_GEN_DAVIDSON) H0block_->H0b_diag_transpose = std::vector<double>(H0block_->size, 0);
         H0block_->H0b_diag = Matrix("H0 block eignevectors", H0block_->size, H0block_->size);
         H0block_->H0b_eigvals = std::vector<double>(H0block_->size);
         H0block_->tmp1 = Matrix("Temporary", H0block_->size, H0block_->size);
@@ -109,7 +108,6 @@ void CIWavefunction::H0block_resize() {
         size2 = H0block_->size;
     if (H0block_->size) {
         H0block_->H0b = Matrix("H0 block", H0block_->size, H0block_->size);
-        if (Parameters_->precon == PRECON_GEN_DAVIDSON) H0block_->H0b_diag_transpose.resize(H0block_->size);
         H0block_->H0b_diag = Matrix("H0 block eignevectors", H0block_->size, H0block_->size);
         H0block_->H0b_eigvals.resize(H0block_->size);
         H0block_->tmp1 = Matrix("Temporary", H0block_->size, H0block_->size);
@@ -176,12 +174,9 @@ int CIWavefunction::H0block_calc(double E) {
         H0xc0 = init_array(size);
         H0xs0 = init_array(size);
         for (size_t i = 0; i < size; i++) {
-            for (size_t j = 0; j < size; j++) H0block_->H0b_diag_transpose[j] = H0block_->H0b_diag(j, i);
-            // dot_arr(H0block_->H0b_diag_transpose, H0block_->c0b, size, &H0xc0[i]);
-            // dot_arr(H0block_->H0b_diag_transpose, H0block_->s0b, size, &H0xs0[i]);
-
-            H0xc0[i] = C_DDOT(size, H0block_->H0b_diag_transpose.data(), 1, H0block_->c0b.data(), 1);
-            H0xs0[i] = C_DDOT(size, H0block_->H0b_diag_transpose.data(), 1, H0block_->s0b.data(), 1);
+            // The eigenvector we need starts at element (0, i), and (1, i) is size units away.
+            H0xc0[i] = C_DDOT(size, H0block_->H0b_diag.get_pointer() + i, size, H0block_->c0b.data(), 1);
+            H0xs0[i] = C_DDOT(size, H0block_->H0b_diag.get_pointer() + i, size, H0block_->s0b.data(), 1);
         }
         for (size_t i = 0; i < size; i++) {
             c_tmp = s_tmp = 0.0;
