@@ -263,7 +263,7 @@ struct graph_set {
 };
 
 struct H_zero_block {
-    double **H0b;                            /* H0 block */
+    Matrix H0b;                            /* H0 block */
     double **H0b_inv;                        /* inverse of block (H0 - E) */
     double **H0b_diag;                       /* Eigenvectors of H0 block */
     std::vector<double> H0b_diag_transpose;  /* tmp array for Transpose of Eigenvectors of H0 block */

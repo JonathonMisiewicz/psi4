@@ -80,7 +80,7 @@ void CIWavefunction::H0block_init(size_t size) {
     H0block_->ocoupling_size = H0block_->coupling_size;
 
     if (H0block_->size) {
-        H0block_->H0b = init_matrix(H0block_->size, H0block_->size);
+        H0block_->H0b = Matrix("H0 block", H0block_->size, H0block_->size);
         if (Parameters_->precon == PRECON_GEN_DAVIDSON) H0block_->H0b_diag_transpose = std::vector<double>(H0block_->size, 0);
         H0block_->H0b_diag = init_matrix(H0block_->size, H0block_->size);
         H0block_->H0b_eigvals = std::vector<double>(H0block_->size);
@@ -108,6 +108,7 @@ void CIWavefunction::H0block_resize() {
     else
         size2 = H0block_->size;
     if (H0block_->size) {
+        H0block_->H0b = Matrix("H0 block", H0block_->size, H0block_->size);
         if (Parameters_->precon == PRECON_GEN_DAVIDSON) H0block_->H0b_diag_transpose.resize(H0block_->size);
         H0block_->H0b_eigvals.resize(H0block_->size);
         H0block_->tmp1 = Matrix("Temporary", H0block_->size, H0block_->size);
@@ -127,7 +128,6 @@ void CIWavefunction::H0block_resize() {
 
 void CIWavefunction::H0block_free() {
     if (H0block_->osize) {
-        free_matrix(H0block_->H0b, H0block_->osize);
         free_matrix(H0block_->H0b_diag, H0block_->osize);
         if (Parameters_->precon == PRECON_H0BLOCK_INVERT) {
             free_matrix(H0block_->H0b_inv, H0block_->osize);
@@ -218,13 +218,10 @@ int CIWavefunction::H0block_calc(double E) {
     } else if (Parameters_->precon == PRECON_H0BLOCK_INVERT || Parameters_->precon == PRECON_H0BLOCK_ITER_INVERT) {
         /* form H0b-E and take its inverse */
         /* subtract E from the diagonal */
+        H0block_->tmp1.copy(H0block_->H0b);
         for (size_t i = 0; i < size; i++) {
             H0block_->c0bp[i] = H0block_->c0b[i]; /* necessary for pople */
             H0block_->s0bp[i] = H0block_->s0b[i]; /* also necessary for pople */
-            for (size_t j = 0; j < size; j++) {
-                // TODO: ...this just needs to be a copy
-                H0block_->tmp1(i, j) = H0block_->H0b[i][j];
-            }
             H0block_->tmp1(i, i) -= E;
         }
 
@@ -237,10 +234,8 @@ int CIWavefunction::H0block_calc(double E) {
         if (Parameters_->precon == PRECON_H0BLOCK_ITER_INVERT) {
             pople(H0block_->tmp1[0], H0block_->c0bp.data(), size, 1, 1e-9, "outfile", print_);
             if (Parameters_->update == UPDATE_OLSEN) {
+                H0block_->tmp1.copy(H0block_->H0b);
                 for (size_t i = 0; i < size; i++) {
-                    for (size_t j = 0; j < size; j++) {
-                        H0block_->tmp1(i, j) = H0block_->H0b[i][j];
-                    }
                     H0block_->tmp1(i, i) -= E;
                 }
                 pople(H0block_->tmp1[0], H0block_->s0bp.data(), size, 1, 1e-9, "outfile", print_);
@@ -671,16 +666,15 @@ void CIWavefunction::H0block_fill() {
                   betlist_[Iblist][Ib].occs);
 
             /* pointers in next line avoids copying structures I and J */
-            H0block_->H0b[i][j] = matrix_element(&I, &J);
-            if (i == j) H0block_->H0b[i][i] += CalcInfo_->edrc;
+            H0block_->H0b(i, j) = matrix_element(&I, &J);
+            if (i == j) H0block_->H0b(i, i) += CalcInfo_->edrc;
             /* outfile->Printf(" i = %d   j = %d\n",i,j); */
         }
 
-        H0block_->H00[i] = H0block_->H0b[i][i];
+        H0block_->H00[i] = H0block_->H0b(i, i);
     }
 
-    /* fill upper triangle */
-    fill_sym_matrix(H0block_->H0b, H0block_->size);
+    H0block_->H0b.copy_lower_to_upper();
 
     if (Parameters_->precon == PRECON_GEN_DAVIDSON)
         size = H0block_->size;
@@ -697,7 +691,7 @@ void CIWavefunction::H0block_fill() {
             size);
     }
 
-    if (DSYEV_ascending(size, H0block_->H0b, H0block_->H0b_eigvals.data(), H0block_->H0b_diag) != 0){
+    if (DSYEV_ascending(size, H0block_->H0b[0], H0block_->H0b_eigvals.data(), H0block_->H0b_diag) != 0){
         throw PSIEXCEPTION("DSYEV diagonalizer failed in DETCI H0block_fill!");
     }
 
@@ -709,20 +703,19 @@ void CIWavefunction::H0block_fill() {
         for (i = 0; i < size; i++) H0block_->H0b_eigvals[i] += CalcInfo_->enuc;
         outfile->Printf("\nH0 Block Eigenvectors\n");
         eivout(H0block_->H0b_diag, H0block_->H0b_eigvals.data(), size, size, "outfile");
-        outfile->Printf("\nH0b matrix\n");
-        print_mat(H0block_->H0b, size, size, "outfile");
+        H0block_->H0b.print();
     }
 }
 
 void CIWavefunction::H0block_coupling_calc(double E) {
-    int i, j, size, size2;
+    int i, j, size2;
     double tval1, tval2;
     double *delta_2, *gamma_1, *gamma_2, *H_12, *delta_1;
     SlaterDeterminant I, J;
     int Ia, Ib;
     int Ialist, Iblist;
 
-    size = H0block_->size;
+    const auto& size = H0block_->size;
     size2 = H0block_->size + H0block_->coupling_size;
 
     H_12 = init_array(H0block_->coupling_size);
@@ -793,11 +786,9 @@ void CIWavefunction::H0block_coupling_calc(double E) {
     /* Now delta_1 */
 
     /* form H0b-E and take its inverse */
+    H0block_->tmp1.copy(H0block_->H0b);
     for (i = 0; i < size; i++) {
         delta_1[i] = gamma_1[i];
-        for (j = 0; j < size; j++) {
-            H0block_->tmp1(i, j) = H0block_->H0b[i][j];
-        }
         H0block_->tmp1(i, i) -= E;
     }
 

@@ -244,8 +244,7 @@ int CIWavefunction::diag_h(double conv_e, double conv_rms) {
         }
 
         if (print_ > 3 && H0block_->size) {
-            outfile->Printf("\n\nH0 Block:\n");
-            print_mat(H0block_->H0b, H0block_->size, H0block_->size, "outfile");
+            H0block_->H0b.print();
         }
 
         /* Davidson/Liu Simultaneous Expansion Method */
