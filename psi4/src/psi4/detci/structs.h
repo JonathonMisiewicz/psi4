@@ -46,10 +46,14 @@
 #include "psi4/pragma.h"
 #include <memory>
 #include "psi4/libmints/dimension.h"
+#include "psi4/libmints/matrix.h"
 #include "psi4/libmints/typedefs.h"
 #include "psi4/libpsi4util/PsiOutStream.h"
 
 namespace psi {
+
+class Matrix;
+
 namespace detci {
 
 /*** DEFINES ***/
@@ -285,7 +289,7 @@ struct H_zero_block {
     std::vector<size_t> blknum;             /* block number for each member */
     std::vector<int> pair;                  /* which H0block member is related by
                                                interchange of alpha and beta indices */
-    double **tmp1;       /* tmp matrix to hold (H0 - E) */
+    Matrix tmp1;                            /* tmp matrix to hold (H0 - E) */
     int nbuf;            /* number of buffers in CIvect */
     int *buf_num;        /* number of H0block elements per buffer */
     int **buf_member;    /* H0block members for each buffer */
