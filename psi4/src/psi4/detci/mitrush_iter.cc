@@ -192,13 +192,13 @@ void CIWavefunction::mitrush_iter(CIvect &Hd, struct stringwr **alplist, struct 
                     tmpi = 1;
                     break;
                 }
-                tval = H0block_->H0b_diag[l][i];
+                tval = H0block_->H0b_diag(l, i);
                 if ((int)Parameters_->S % 2) tval = -tval;
-                if (H0block_->H0b_diag[j][i] - tval > 1.0E-8) tmpi = 1;
+                if (H0block_->H0b_diag(j, i) - tval > 1.0E-8) tmpi = 1;
             }
             if (tmpi) continue;
 
-            for (j = 0; j < L; j++) sm_evals[j] = H0block_->H0b_diag[j][i];
+            for (j = 0; j < L; j++) sm_evals[j] = H0block_->H0b_diag(j, i);
 
             Cvec.init_vals(k, H0block_->alpidx, H0block_->betidx, H0block_->blknum, sm_evals);
             Cvec.write_num_vecs(1);

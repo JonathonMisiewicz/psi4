@@ -406,15 +406,15 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
                     outfile->Printf("(sem_iter): Warning: unpaired h0block member!\n");
                     tmpi = 1;
                 }
-                tval = H0block_->H0b_diag[l][i];
+                tval = H0block_->H0b_diag(l, i);
                 if ((int)Parameters_->S % 2) tval = -tval;
-                if (std::fabs(H0block_->H0b_diag[j][i] - tval) > 1.0E-8) {
+                if (std::fabs(H0block_->H0b_diag(j, i) - tval) > 1.0E-8) {
                     tmpi = 1;
                     outfile->Printf(
                         "(sem_iter): H0block_->H0b_diag[%d][%d]"
                         " - H0block_->H0b_diag[%d][%d] = %lf - %lf = %lf"
                         " > 1.0E-8\n",
-                        j, i, l, i, H0block_->H0b_diag[j][i], tval, (H0block_->H0b_diag[j][i] - tval));
+                        j, i, l, i, H0block_->H0b_diag(j, i), tval, (H0block_->H0b_diag(j, i) - tval));
                 }
             }
 
@@ -422,9 +422,9 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
             if (!tmpi && Parameters_->filter_guess) {
                 j = Parameters_->filter_guess_H0_det1;
                 l = Parameters_->filter_guess_H0_det2;
-                tval = H0block_->H0b_diag[l][i];
+                tval = H0block_->H0b_diag(l, i);
                 if (Parameters_->filter_guess_sign == -1) tval = -tval;
-                if (std::fabs(H0block_->H0b_diag[j][i] - tval) > 1.0E-8) {
+                if (std::fabs(H0block_->H0b_diag(j, i) - tval) > 1.0E-8) {
                     tmpi = 1;
                     outfile->Printf(
                         "(sem_iter): Guess vector failed user-specified"
@@ -433,13 +433,13 @@ void CIWavefunction::sem_iter(CIvect &Hd, struct stringwr **alplist, struct stri
                         "(sem_iter): H0block_->H0b_diag[%d][%d]"
                         " - H0block_->H0b_diag[%d][%d] = %lf - %lf = %lf"
                         " > 1.0E-8\n",
-                        j, i, l, i, H0block_->H0b_diag[j][i], tval, (H0block_->H0b_diag[j][i] - tval));
+                        j, i, l, i, H0block_->H0b_diag(j, i), tval, (H0block_->H0b_diag(j, i) - tval));
                 }
             }
 
             if (tmpi) continue;
 
-            for (j = 0; j < L; j++) sm_evals[j] = H0block_->H0b_diag[j][i];
+            for (j = 0; j < L; j++) sm_evals[j] = H0block_->H0b_diag(j, i);
 
             Cvec.init_vals(k, H0block_->alpidx, H0block_->betidx, H0block_->blknum, sm_evals);
 
