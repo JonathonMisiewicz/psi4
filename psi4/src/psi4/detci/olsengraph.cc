@@ -267,7 +267,7 @@ void olsengraph(struct olsen_graph *Graph, int ci_orbs, int num_el, int nirreps,
     Graph->ras4_lvl = ras4_lvl;
     Graph->ras4_max = ras4_max;
     Graph->nirreps = nirreps;
-    Graph->str_per_irrep = init_int_array(nirreps);
+    Graph->str_per_irrep = std::vector<size_t>(nirreps, 0);
     // n1max = ras1_max - orbs_frozen;  CDS 4/15
     // n1min = ras1_min - orbs_frozen;  CDS 4/15
     n1max = ras1_max;

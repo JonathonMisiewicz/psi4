@@ -172,34 +172,34 @@ struct stringgraph {
 ** #RAS III electrons.
 */
 struct olsen_graph {
-    int num_str;             /* total number of strings */
-    int num_drc_orbs;        /* number of dropped core orbitals */
-    int num_expl_cor_orbs;   /* number of explicit core orbitals */
-    int drc_sym;             /* symmetry (irrep) for the dropped core */
-    int num_el;              /* number of electrons (total) in graph */
-    int num_el_expl;         /* number of electrons (explicit) in graph */
-    int num_orb;             /* number of orbitals explicitly treated */
-    int ras1_lvl;            /* orbital number where RAS I ends (less drc),
-                                or the last level in RAS I */
-    int ras1_min;            /* minimum number of electrons in RAS I (for
-                                the _strings_), incl. core */
-    int ras1_max;            /* max number of RAS I electrons (useful when
-                                the RAS I level may extend beyond the last
-                                occupied orbital), incl. core */
-    int ras3_lvl;            /* orbital num where RAS III begins (less drc) */
-    int ras3_max;            /* maximum number of electrons in RAS III */
-    int ras4_lvl;            /* orbital number where RAS IV begins (less drc) */
-    int ras4_max;            /* maximum number of electrons in RAS IV */
-    int nirreps;             /* number of irreps */
-    int subgr_per_irrep;     /* possible number of Olsen subgraphs per irrep */
-    int max_str_per_irrep;   /* largest number of strings found in an irrep */
-    int *str_per_irrep;      /* array containing num strings per irrep */
-    int ***decode;           /* decode[ras1_holes][ras3_e][ras4_e] */
-    int **encode;            /* encode[0,1,2][code] gives ras1 e- (excl drc) and
-                                ras3 e- and ras4 e- */
-    struct stringgraph **sg; /* sg[irrep][code] */
-    int *orbsym;             /* array for orbital irreps (incl. drc) */
-    int *list_offset;        /* absolute offset for each list */
+    int num_str;                        /* total number of strings */
+    int num_drc_orbs;                   /* number of dropped core orbitals */
+    int num_expl_cor_orbs;              /* number of explicit core orbitals */
+    int drc_sym;                        /* symmetry (irrep) for the dropped core */
+    int num_el;                         /* number of electrons (total) in graph */
+    int num_el_expl;                    /* number of electrons (explicit) in graph */
+    int num_orb;                        /* number of orbitals explicitly treated */
+    int ras1_lvl;                       /* orbital number where RAS I ends (less drc),
+                                           or the last level in RAS I */
+    int ras1_min;                       /* minimum number of electrons in RAS I (for
+                                           the _strings_), incl. core */
+    int ras1_max;                       /* max number of RAS I electrons (useful when
+                                           the RAS I level may extend beyond the last
+                                           occupied orbital), incl. core */
+    int ras3_lvl;                       /* orbital num where RAS III begins (less drc) */
+    int ras3_max;                       /* maximum number of electrons in RAS III */
+    int ras4_lvl;                       /* orbital number where RAS IV begins (less drc) */
+    int ras4_max;                       /* maximum number of electrons in RAS IV */
+    int nirreps;                        /* number of irreps */
+    int subgr_per_irrep;                /* possible number of Olsen subgraphs per irrep */
+    int max_str_per_irrep;              /* largest number of strings found in an irrep */
+    std::vector<size_t> str_per_irrep;  /* array containing num strings per irrep */
+    int ***decode;                      /* decode[ras1_holes][ras3_e][ras4_e] */
+    int **encode;                       /* encode[0,1,2][code] gives ras1 e- (excl drc) and
+                                           ras3 e- and ras4 e- */
+    struct stringgraph **sg;            /* sg[irrep][code] */
+    int *orbsym;                        /* array for orbital irreps (incl. drc) */
+    int *list_offset;                   /* absolute offset for each list */
 };
 
 /*
