@@ -98,11 +98,6 @@ void CIWavefunction::H0block_init(size_t size) {
         H0block_->pair = std::vector<int>(size2, 0);
         if (Parameters_->precon == PRECON_H0BLOCK_INVERT)
             H0block_->H0b_inv = init_matrix(H0block_->size, H0block_->size);
-
-        if (Parameters_->h0block_coupling) {
-            H0block_->tmp_array1 = init_array(size2);
-            H0block_->tmp_array2 = init_array(size2);
-        }
     }
 }
 
@@ -137,10 +132,6 @@ void CIWavefunction::H0block_free() {
         if (Parameters_->precon == PRECON_H0BLOCK_INVERT) {
             free_matrix(H0block_->H0b_inv, H0block_->osize);
         }
-        if (Parameters_->h0block_coupling) {
-            free(H0block_->tmp_array1);
-            free(H0block_->tmp_array2);
-        }
         if (H0block_->nbuf) {
             for (int i = 0; i < H0block_->nbuf; i++) {
                 if (H0block_->buf_num[i]) {
@@ -155,10 +146,8 @@ void CIWavefunction::H0block_free() {
 }
 
 void CIWavefunction::H0block_print() {
-    int i;
-
     outfile->Printf("\nMembers of H0 block:\n\n");
-    for (i = 0; i < H0block_->size; i++) {
+    for (size_t i = 0; i < H0block_->size; i++) {
         std::string configstring(print_config(CalcInfo_->num_ci_orbs, CalcInfo_->num_alp_expl, CalcInfo_->num_bet_expl,
                                               alplist_[H0block_->alplist[i]] + H0block_->alpidx[i],
                                               betlist_[H0block_->betlist[i]] + H0block_->betidx[i],

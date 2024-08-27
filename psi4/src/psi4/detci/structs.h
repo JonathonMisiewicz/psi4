@@ -292,8 +292,6 @@ struct H_zero_block {
     double spin_cp_vals; /* Values of dets which should be added
                              to the h0block but were not due to size
                              restrictions of h0block.size */
-    double *tmp_array1;  /* temporary array 1 */
-    double *tmp_array2;  /* temporary array 2 */
 };
 
 /*
