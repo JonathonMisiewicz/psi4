@@ -264,7 +264,7 @@ struct graph_set {
 
 struct H_zero_block {
     Matrix H0b;                              /* H0 block */
-    double **H0b_inv;                        /* inverse of block (H0 - E) */
+    Matrix H0b_inv;                          /* inverse of block (H0 - E) */
     Matrix H0b_diag;                         /* Eigenvectors of H0 block */
     std::vector<double> H0b_eigvals;         /* Eigenvalues of H0 block */
     std::vector<double> H00;                 /* diag elements of H0 block */

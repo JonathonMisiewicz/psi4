@@ -96,7 +96,7 @@ void CIWavefunction::H0block_init(size_t size) {
         H0block_->blknum = std::vector<size_t>(size2, 0);
         H0block_->pair = std::vector<int>(size2, 0);
         if (Parameters_->precon == PRECON_H0BLOCK_INVERT)
-            H0block_->H0b_inv = init_matrix(H0block_->size, H0block_->size);
+            H0block_->H0b_inv = Matrix("H0 - E block inverse", H0block_->size, H0block_->size);
     }
 }
 
@@ -122,14 +122,13 @@ void CIWavefunction::H0block_resize() {
         H0block_->betidx.resize(size2);
         H0block_->blknum.resize(size2);
         H0block_->pair.resize(size2);
+        if (Parameters_->precon == PRECON_H0BLOCK_INVERT)
+            H0block_->H0b_inv = Matrix("H0 - E block inverse", H0block_->size, H0block_->size);
     }
 }
 
 void CIWavefunction::H0block_free() {
     if (H0block_->osize) {
-        if (Parameters_->precon == PRECON_H0BLOCK_INVERT) {
-            free_matrix(H0block_->H0b_inv, H0block_->osize);
-        }
         if (H0block_->nbuf) {
             for (int i = 0; i < H0block_->nbuf; i++) {
                 if (H0block_->buf_num[i]) {
@@ -237,23 +236,18 @@ int CIWavefunction::H0block_calc(double E) {
             }
             detH0 = 1.0;
         } else {
-            detH0 = invert_matrix(H0block_->tmp1[0], H0block_->H0b_inv, size, "outfile");
+            detH0 = invert_matrix(H0block_->tmp1[0], H0block_->H0b_inv[0], size, "outfile");
             if (print_ > 4) {
-                outfile->Printf("\nINV(H0 - E)\n");
-                print_mat(H0block_->H0b_inv, H0block_->size, H0block_->size, "outfile");
+                H0block_->H0b_inv.print();
             }
 
             /* get c0bp = (H0b - E)^{-1} * c0b */
-            C_DGEMM('N', 'T', size, size, size, 1.0, H0block_->H0b_inv[0], size, &(H0block_->c0b)[0], size, 0.0,
+            C_DGEMM('N', 'T', size, size, size, 1.0, H0block_->H0b_inv.get_pointer(), size, &(H0block_->c0b)[0], size, 0.0,
                     &(H0block_->c0bp)[0], size);
-            // mmult(H0block_->H0b_inv, 0, &(H0block_->c0b), 1, &(H0block_->c0bp), 1,
-            //      size, size, 1, 0);
 
             /* get s0bp = (H0b - E)^{-1} * s0b */
-            C_DGEMM('N', 'T', size, size, size, 1.0, H0block_->H0b_inv[0], size, &(H0block_->s0b)[0], size, 0.0,
+            C_DGEMM('N', 'T', size, size, size, 1.0, H0block_->H0b_inv.get_pointer(), size, &(H0block_->s0b)[0], size, 0.0,
                     &(H0block_->s0bp)[0], size);
-            // mmult(H0block_->H0b_inv, 0, &(H0block_->s0b), 1, &(H0block_->s0bp), 1,
-            //      size, size, 1, 0);
         }
 
         if (print_ > 4) {
