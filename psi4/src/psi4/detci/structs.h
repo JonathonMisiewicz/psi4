@@ -259,32 +259,32 @@ struct graph_set {
 };
 
 struct H_zero_block {
-    double **H0b;                       /* H0 block */
-    double **H0b_inv;                   /* inverse of block (H0 - E) */
-    double **H0b_diag;                  /* Eigenvectors of H0 block */
-    double *H0b_diag_transpose;         /* tmp array for Transpose of Eigenvectors of H0 block */
-    std::vector<double> H0b_eigvals;    /* Eigenvalues of H0 block */
-    std::vector<double> H00;            /* diag elements of H0 block */
-    int size;                           /* size of H0 block */
-    int osize;                          /* original (dimensioned size); can be reduced
-                                           for Ms=0 cases by H0block_pairup() */
-    int guess_size;                     /* size of initial H0 block guess which may
-                                           differ from size */
-    int oguess_size;                    /* original guess size may change with
-                                           spin_cpl_chk() and pairup() */
-    int coupling_size;                  /* size of H0 block coupling to secondary
-                                           space */
-    int ocoupling_size;                 /* original size of coupling_size */
-    std::vector<double> c0b, s0b;       /* gathered C and sigma vectors */
-    std::vector<double> c0bp, s0bp;     /* INV(H0 - E) times c0b and s0b */
+    double **H0b;                            /* H0 block */
+    double **H0b_inv;                        /* inverse of block (H0 - E) */
+    double **H0b_diag;                       /* Eigenvectors of H0 block */
+    std::vector<double> H0b_diag_transpose;  /* tmp array for Transpose of Eigenvectors of H0 block */
+    std::vector<double> H0b_eigvals;         /* Eigenvalues of H0 block */
+    std::vector<double> H00;                 /* diag elements of H0 block */
+    size_t size;                             /* size of H0 block */
+    size_t osize;                            /* original (dimensioned size); can be reduced
+                                                for Ms=0 cases by H0block_pairup() */
+    size_t guess_size;                       /* size of initial H0 block guess which may
+                                                differ from size */
+    size_t oguess_size;                      /* original guess size may change with
+                                                spin_cpl_chk() and pairup() */
+    size_t coupling_size;                    /* size of H0 block coupling to secondary
+                                                space */
+    size_t ocoupling_size;                   /* original size of coupling_size */
+    std::vector<double> c0b, s0b;            /* gathered C and sigma vectors */
+    std::vector<double> c0bp, s0bp;          /* INV(H0 - E) times c0b and s0b */
 
-    std::vector<size_t> alplist;        /* list (graph) containing alpha string */
-    std::vector<size_t> betlist;        /* list containing beta string */
-    std::vector<size_t> alpidx;         /* relative index of alpha string */
-    std::vector<size_t> betidx;         /* relative index of beta string */
-    std::vector<size_t> blknum;         /* block number for each member */
-    std::vector<int> pair;           /* which H0block member is related by
-                            interchange of alpha and beta indices */
+    std::vector<size_t> alplist;            /* list (graph) containing alpha string */
+    std::vector<size_t> betlist;            /* list containing beta string */
+    std::vector<size_t> alpidx;             /* relative index of alpha string */
+    std::vector<size_t> betidx;             /* relative index of beta string */
+    std::vector<size_t> blknum;             /* block number for each member */
+    std::vector<int> pair;                  /* which H0block member is related by
+                                               interchange of alpha and beta indices */
     double **tmp1;       /* tmp matrix to hold (H0 - E) */
     int nbuf;            /* number of buffers in CIvect */
     int *buf_num;        /* number of H0block elements per buffer */

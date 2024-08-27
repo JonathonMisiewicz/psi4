@@ -81,7 +81,7 @@ void CIWavefunction::H0block_init(size_t size) {
 
     if (H0block_->size) {
         H0block_->H0b = init_matrix(H0block_->size, H0block_->size);
-        if (Parameters_->precon == PRECON_GEN_DAVIDSON) H0block_->H0b_diag_transpose = init_array(H0block_->size);
+        if (Parameters_->precon == PRECON_GEN_DAVIDSON) H0block_->H0b_diag_transpose = std::vector<double>(H0block_->size, 0);
         H0block_->H0b_diag = init_matrix(H0block_->size, H0block_->size);
         H0block_->H0b_eigvals = std::vector<double>(H0block_->size);
         H0block_->tmp1 = init_matrix(H0block_->size, H0block_->size);
@@ -113,6 +113,7 @@ void CIWavefunction::H0block_resize() {
     else
         size2 = H0block_->size;
     if (H0block_->size) {
+        if (Parameters_->precon == PRECON_GEN_DAVIDSON) H0block_->H0b_diag_transpose.resize(H0block_->size);
         H0block_->H0b_eigvals.resize(H0block_->size);
         H0block_->H00.resize(size2);
         H0block_->c0b.resize(size2);
@@ -131,9 +132,6 @@ void CIWavefunction::H0block_resize() {
 void CIWavefunction::H0block_free() {
     if (H0block_->osize) {
         free_matrix(H0block_->H0b, H0block_->osize);
-        if (Parameters_->precon == PRECON_GEN_DAVIDSON) {
-            free(H0block_->H0b_diag_transpose);
-        }
         free_matrix(H0block_->H0b_diag, H0block_->osize);
         free_matrix(H0block_->tmp1, H0block_->osize);
         if (Parameters_->precon == PRECON_H0BLOCK_INVERT) {
@@ -193,8 +191,8 @@ int CIWavefunction::H0block_calc(double E) {
             // dot_arr(H0block_->H0b_diag_transpose, H0block_->c0b, size, &H0xc0[i]);
             // dot_arr(H0block_->H0b_diag_transpose, H0block_->s0b, size, &H0xs0[i]);
 
-            H0xc0[i] = C_DDOT(size, H0block_->H0b_diag_transpose, 1, H0block_->c0b.data(), 1);
-            H0xs0[i] = C_DDOT(size, H0block_->H0b_diag_transpose, 1, H0block_->s0b.data(), 1);
+            H0xc0[i] = C_DDOT(size, H0block_->H0b_diag_transpose.data(), 1, H0block_->c0b.data(), 1);
+            H0xs0[i] = C_DDOT(size, H0block_->H0b_diag_transpose.data(), 1, H0block_->s0b.data(), 1);
         }
         for (size_t i = 0; i < size; i++) {
             c_tmp = s_tmp = 0.0;
