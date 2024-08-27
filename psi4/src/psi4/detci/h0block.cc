@@ -83,7 +83,7 @@ void CIWavefunction::H0block_init(size_t size) {
         H0block_->H0b = init_matrix(H0block_->size, H0block_->size);
         if (Parameters_->precon == PRECON_GEN_DAVIDSON) H0block_->H0b_diag_transpose = init_array(H0block_->size);
         H0block_->H0b_diag = init_matrix(H0block_->size, H0block_->size);
-        H0block_->H0b_eigvals = init_array(H0block_->size);
+        H0block_->H0b_eigvals = std::vector<double>(H0block_->size);
         H0block_->tmp1 = init_matrix(H0block_->size, H0block_->size);
         H0block_->H00 = std::vector<double>(size2, 0);
         H0block_->c0b = std::vector<double>(size2, 0);
@@ -113,17 +113,18 @@ void CIWavefunction::H0block_resize() {
     else
         size2 = H0block_->size;
     if (H0block_->size) {
-        H0block_->H00.resize(H0block_->size);
-        H0block_->c0b.resize(H0block_->size);
-        H0block_->c0bp.resize(H0block_->size);
-        H0block_->s0b.resize(H0block_->size);
-        H0block_->s0bp.resize(H0block_->size);
-        H0block_->alplist.resize(H0block_->size);
-        H0block_->betlist.resize(H0block_->size);
-        H0block_->alpidx.resize(H0block_->size);
-        H0block_->betidx.resize(H0block_->size);
-        H0block_->blknum.resize(H0block_->size);
-        H0block_->pair.resize(H0block_->size);
+        H0block_->H0b_eigvals.resize(H0block_->size);
+        H0block_->H00.resize(size2);
+        H0block_->c0b.resize(size2);
+        H0block_->c0bp.resize(size2);
+        H0block_->s0b.resize(size2);
+        H0block_->s0bp.resize(size2);
+        H0block_->alplist.resize(size2);
+        H0block_->betlist.resize(size2);
+        H0block_->alpidx.resize(size2);
+        H0block_->betidx.resize(size2);
+        H0block_->blknum.resize(size2);
+        H0block_->pair.resize(size2);
     }
 }
 
@@ -707,7 +708,7 @@ void CIWavefunction::H0block_fill() {
             size);
     }
 
-    if (DSYEV_ascending(size, H0block_->H0b, H0block_->H0b_eigvals, H0block_->H0b_diag) != 0){
+    if (DSYEV_ascending(size, H0block_->H0b, H0block_->H0b_eigvals.data(), H0block_->H0b_diag) != 0){
         throw PSIEXCEPTION("DSYEV diagonalizer failed in DETCI H0block_fill!");
     }
 
@@ -718,7 +719,7 @@ void CIWavefunction::H0block_fill() {
     if (print_ > 5 && size < 1000) {
         for (i = 0; i < size; i++) H0block_->H0b_eigvals[i] += CalcInfo_->enuc;
         outfile->Printf("\nH0 Block Eigenvectors\n");
-        eivout(H0block_->H0b_diag, H0block_->H0b_eigvals, size, size, "outfile");
+        eivout(H0block_->H0b_diag, H0block_->H0b_eigvals.data(), size, size, "outfile");
         outfile->Printf("\nH0b matrix\n");
         print_mat(H0block_->H0b, size, size, "outfile");
     }
