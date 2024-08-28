@@ -36,7 +36,9 @@
 
 #include "psi4/libciomr/libciomr.h"
 #include "psi4/psifiles.h"
+#include "psi4/libmints/corrtab.h"
 #include "psi4/libmints/dimension.h"
+#include "psi4/libmints/pointgrp.h"
 #include "psi4/liboptions/liboptions.h"
 #include "psi4/libpsi4util/PsiOutStream.h"
 
@@ -46,6 +48,45 @@
 #include <numeric>
 
 namespace psi {
+
+/*!
+** set_dimension()
+**
+** A utility function designed for ras_set that writes an irreped option into a Dimension
+** object, accounting for displacements. This code in principle is reusable by other modules,
+** but that hasn't been field-tested. Returns whether the relevant option was ever set.
+**
+**/
+
+bool set_dimension(Options& options, const std::string& tag, Dimension& target, std::shared_ptr<PointGroup> pg) {
+    auto nirreps = pg->char_table().nirrep();
+    if (target.n() != nirreps)
+        throw PSIEXCEPTION("set_dimension(): Input dimension has the wrong number of irreps. File a bug report.");
+    if (options[tag].has_changed()) {
+        // The option has been set...
+        if (const auto& ps = options.get_str("PARENT_SYMMETRY"); ps != "") {
+            // ...but this is a displacement. We need to fix the option.
+            auto parent_pg = std::make_shared<PointGroup>(ps);
+            size_t parent_nirreps = parent_pg->char_table().nirrep();
+            if (options[tag].size() != parent_nirreps)
+                throw InputException("set_dimension(): Wrong size of array", tag, __FILE__, __LINE__);
+            target.init(nirreps, target.name());
+            CorrelationTable irrep_map(parent_pg, pg);
+            for (int h = 0; h < parent_nirreps; ++h) {
+                 const auto target_irrep = irrep_map.gamma(h, 0);
+                 target[target_irrep] += options[tag][h].to_integer();
+            }
+        } else {
+            // ...and this isn't a displacement. We can expect symmetry to be normal.
+            if (options[tag].size() != nirreps)
+                throw InputException("set_dimension(): Wrong size of array", tag, __FILE__, __LINE__);
+            options.fill_int_array(tag, target);
+        }
+        return true;
+    }
+    // The option was never set.
+    return false;
+}
 
 /*!
 ** ras_set()
@@ -131,7 +172,7 @@ namespace psi {
 */
 int ras_set(Dimension& orbspi, Dimension& docc, Dimension& socc, Dimension& frdocc, Dimension& fruocc, Dimension& restrdocc,
             Dimension& restruocc, std::vector<Dimension>& ras_opi, Dimension& core_guess, int *order, int ras_type, bool is_mcscf,
-            Options &options) {
+            std::shared_ptr<PointGroup> pg, Options &options) {
     // Initialize variables
     int point, tmpi, cnt = 0;
     int errbad = 0;
@@ -158,57 +199,17 @@ int ras_set(Dimension& orbspi, Dimension& docc, Dimension& socc, Dimension& frdo
 
     // Set DOCC and SOCC. These aren't spaces we need to fill, but are invaluable in working
     // out the spaces the user left implicit.
-    if (options["DOCC"].has_changed()) {
-        if (options["DOCC"].size() != nirreps) {
-            throw InputException("ras_set(): Wrong size of array", "DOCC", __FILE__, __LINE__);
-        }
-        options.fill_int_array("DOCC", docc);
-    }
-    if (options["SOCC"].has_changed()) {
-        if (options["SOCC"].size() != nirreps) {
-            throw InputException("ras_set(): Wrong size of array", "SOCC", __FILE__, __LINE__);
-        }
-        options.fill_int_array("SOCC", socc);
-    }
+    set_dimension(options, "DOCC", docc, pg);
+    set_dimension(options, "SOCC", socc, pg);
 
     // Now we'll take the spaces we do need to fill, if explicit.
-    if (options["FROZEN_DOCC"].has_changed()) {
-        if (options["FROZEN_DOCC"].size() != nirreps) {
-            throw InputException("ras_set(): Wrong size of array", "FROZEN_DOCC", __FILE__, __LINE__);
-        }
-        options.fill_int_array("FROZEN_DOCC", frdocc);
-        parsed_frozen_docc = true;
-    }
-    if (options["RESTRICTED_DOCC"].has_changed()) {
-        if (options["RESTRICTED_DOCC"].size() != nirreps) {
-            throw InputException("ras_set(): Wrong size of array", "RESTRICTED_DOCC", __FILE__, __LINE__);
-        }
-        options.fill_int_array("RESTRICTED_DOCC", restrdocc);
-        parsed_restr_docc = true;
-    }
-    if (options["FROZEN_UOCC"].has_changed()) {
-        if (options["FROZEN_UOCC"].size() != nirreps) {
-            throw InputException("ras_set(): Wrong size of array", "FROZEN_UOCC", __FILE__, __LINE__);
-        }
-        options.fill_int_array("FROZEN_UOCC", fruocc);
-        parsed_frozen_uocc = true;
-    }
-    if (options["RESTRICTED_UOCC"].has_changed()) {
-        if (options["RESTRICTED_UOCC"].size() != nirreps) {
-            throw InputException("ras_set(): Wrong size of array", "RESTRICTED_UOCC", __FILE__, __LINE__);
-        }
-        options.fill_int_array("RESTRICTED_UOCC", restruocc);
-        parsed_restr_uocc = true;
-    }
+    parsed_frozen_docc = set_dimension(options, "FROZEN_DOCC", frdocc, pg);
+    parsed_restr_docc = set_dimension(options, "RESTRICTED_DOCC", restrdocc, pg);
+    parsed_frozen_uocc = set_dimension(options, "FROZEN_UOCC", fruocc, pg);
+    parsed_restr_uocc = set_dimension(options, "RESTRICTED_UOCC", restruocc, pg);
     for (size_t i = 0; i < ras_opi.size(); i++) {
         std::string tag = "RAS" + std::to_string(i + 1); // TODO: Use auto tag = std::format("RAS{}", i+ 1) when compiler supports it.
-        if (options[tag].has_changed()) {
-            if (options[tag].size() != nirreps) {
-                throw InputException("ras_set(): Wrong size of array", tag, __FILE__, __LINE__);
-            }
-            options.fill_int_array(tag, ras_opi[i]);
-            parsed_ras[i] = true;
-        }
+        parsed_ras[i] = set_dimension(options, tag, ras_opi[i], pg);
     }
 
     // If neither FROZEN_DOCC nor RESTRICTED_DOCC is explicit, assume that one is core_guess
@@ -232,10 +233,9 @@ int ras_set(Dimension& orbspi, Dimension& docc, Dimension& socc, Dimension& frdo
     }
 
     // Now it's time to work out the RAS spaces...
-    if (options["ACTIVE"].has_changed()) {
-        // If we're in this case, our job is easy.
-        options.fill_int_array("ACTIVE", ras_opi[1]);
-    } else {
+    if (!set_dimension(options, "ACTIVE", ras_opi[1], pg)) {
+        // We are in this case if and only if ACTIVE was not explicit.
+
         // Work out RAS1
         if (!parsed_ras[0]) {
             ras_opi[0] += docc - frdocc - restrdocc;
