@@ -48,21 +48,24 @@
 #include <gauxc/molgrid/defaults.hpp>
 #include <gauxc/xc_integrator/integrator_factory.hpp>
 
+#include "gauxc_device.h"
+
 namespace psi {
 
 void GauXCBase::initialize() {
     use_gpu_ = options_.get_bool("GAUXC_USE_GPU");
-#ifndef GAUXC_HAS_DEVICE
-    if (use_gpu_) {
-        throw PSIEXCEPTION("GAUXC_USE_GPU was requested, but GauXC was not built with device support.");
-    }
-#endif
+    device_desc_ = use_gpu_ ? gauxc_device::check("GAUXC_USE_GPU") : std::string();
+    // Device setup and the first kernel launches happen below; run them so failures get explained
+    auto on_device = [this](auto&& step) { gauxc_device::run(use_gpu_, "GAUXC_USE_GPU", device_desc_, step); };
+
     const auto gauxc_execspace = use_gpu_ ? GauXC::ExecutionSpace::Device : GauXC::ExecutionSpace::Host;
     GauXC::LoadBalancerFactory lb_factory(gauxc_execspace, options_.get_str("GAUXC_LOAD_BALANCER_KERNEL"));
     std::unique_ptr<GauXC::RuntimeEnvironment> rt = nullptr;
- #ifdef GAUXC_HAS_DEVICE 
+ #ifdef GAUXC_HAS_DEVICE
     if (use_gpu_) {
-        rt = std::make_unique<GauXC::DeviceRuntimeEnvironment>( GAUXC_MPI_CODE(MPI_COMM_WORLD,) 0.01*options_.get_int("GAUXC_GPU_MEM"));
+        on_device([&] {
+            rt = std::make_unique<GauXC::DeviceRuntimeEnvironment>( GAUXC_MPI_CODE(MPI_COMM_WORLD,) 0.01*options_.get_int("GAUXC_GPU_MEM"));
+        });
     } else {
         rt = std::make_unique<GauXC::RuntimeEnvironment>( GAUXC_MPI_CODE(MPI_COMM_WORLD) );
     }
@@ -98,11 +101,14 @@ void GauXCBase::initialize() {
         GauXC::AngularSize(spherical_points)
     );
     auto gauxc_primary = primary_->to_gauxc_basisset<double>(1.0e-10, false); // TODO: Allow customization
-    auto load_balancer = lb_factory.get_shared_instance(*rt, gauxc_mol, gauxc_grid, gauxc_primary);
-    GauXC::MolecularWeightsFactory mw_factory(gauxc_execspace, "Default",
-                                          GauXC::MolecularWeightsSettings{});
-    auto mw = mw_factory.get_instance();
-    mw.modify_weights(*load_balancer);
+    std::shared_ptr<GauXC::LoadBalancer> load_balancer;
+    on_device([&] {
+        load_balancer = lb_factory.get_shared_instance(*rt, gauxc_mol, gauxc_grid, gauxc_primary);
+        GauXC::MolecularWeightsFactory mw_factory(gauxc_execspace, "Default",
+                                              GauXC::MolecularWeightsSettings{});
+        auto mw = mw_factory.get_instance();
+        mw.modify_weights(*load_balancer);
+    });
 
     // TODO: Allow for more options here. This is quick-and-dirty.
     GauXC::XCIntegratorFactory<Eigen::MatrixXd> integrator_factory(
@@ -151,6 +157,7 @@ void GauXCBase::print_header() const {
     functional_->print("outfile", options_.get_int("PRINT"));
     outfile->Printf("   => GauXC Quadrature <=\n\n");
     outfile->Printf("    Execution Space        = %14s\n", use_gpu_ ? "Device (GPU)" : "Host (CPU)");
+    if (use_gpu_ && !device_desc_.empty()) outfile->Printf("    GPU Device             = %s\n", device_desc_.c_str());
     outfile->Printf("    Radial Scheme          = %14s\n", options_.get_str("GAUXC_RADIAL_SCHEME").c_str());
     outfile->Printf("    Pruning Scheme         = %14s\n", options_.get_str("GAUXC_PRUNING_SCHEME").c_str());
     outfile->Printf("\n");
